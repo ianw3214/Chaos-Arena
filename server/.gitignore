@@ -1,0 +1,10 @@
+# SSH KEYS
+ssh.key
+ssh.key.pub
+
+# UTILITY FILES
+*.bat
+*.commands
+
+# BINARY FILES
+bin/

@@ -1,0 +1,13 @@
+# visual studio files
+*.user
+
+# Output binaries
+Debug/
+Release/
+
+# Library directories
+libs/
+
+# IDE folders
+.vs/
+.vscode/
