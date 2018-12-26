@@ -1,6 +1,6 @@
 #include "renderer.hpp"
 
-#include "shaderLoader.hpp"
+#include "engine/shaderLoader.hpp"
 
 // Constants for rendering shapes
 const unsigned int LINE_INDICES[2] = { 0, 1 };
@@ -18,6 +18,10 @@ void Renderer::init() {
 	basicShader->setUniform1i("u_screen_height", 500);
 	basicShader->setUniform4f("u_colour", 1.f, 0.f, 0.f, 1.f);
 
+}
+
+void Renderer::shutdown() {
+	// Do nothing
 }
 
 void Renderer::clear(Colour colour, float alpha) {

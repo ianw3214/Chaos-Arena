@@ -5,14 +5,21 @@
 #include <SDL2/SDL_opengl.h>
 
 // Project includes
-#include "../utils/utils.hpp"
-#include "renderer.hpp"
+#include "utils/utils.hpp"
+#include "profiler/profiler.hpp"
+#include "renderer/renderer.hpp"
+#include "renderer/textRenderer.hpp"
 
 // Engine static variables
-SDL_Window * Engine::m_window;
-SDL_GLContext Engine::m_context;
+SDL_Window *	Engine::m_window;
+SDL_GLContext	Engine::m_context;
+int Engine::m_screenWidth;
+int Engine::m_screenHeight;
+
+#include <ctime>
 
 void Engine::init() {
+
 	// Initialize SDL
 	int result = SDL_Init(SDL_INIT_EVERYTHING);
 	if (result > 0) {
@@ -31,6 +38,9 @@ void Engine::init() {
 	if (m_window == NULL) {
 		ERR("Could not create a window")
 	}
+	// TODO: (Ian) Set these to actual dimensions of the window
+	m_screenWidth = 500;
+	m_screenHeight = 500;
 
 	// Create OpenGL context
 	m_context = SDL_GL_CreateContext(m_window);
@@ -56,12 +66,29 @@ void Engine::init() {
 
 
 	// Initialize subsystems here
+	Profiler::init();
 	Renderer::init();
+	TextRenderer::init();
+
+	// Initialize random seed
+	srand(static_cast<unsigned int>(time(nullptr)));
 
 }
 
 void Engine::shutdown() {
+	TextRenderer::shutdown();
+	Renderer::shutdown();
+	Profiler::shutdown();
+
 	SDL_Quit();
+}
+
+int Engine::getScreenWidth() {
+	return m_screenWidth;
+}
+
+int Engine::getScreenHeight() {
+	return m_screenHeight;
 }
 
 void Engine::swapScreenBuffer() {

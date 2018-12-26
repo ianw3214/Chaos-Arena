@@ -7,8 +7,12 @@
 
 #include "common.hpp"
 
+#include "game/map.hpp"
+
 // Static class variables
 bool			Game::running;
+int				Game::camera_x;
+int				Game::camera_y;
 std::mutex		Game::player_mutex;
 Unit			Game::player;
 std::unordered_map<int, Unit>			Game::units;
@@ -18,8 +22,13 @@ Socket::Socket	Game::socket;
 int				Game::client_id;
 bool			Game::connected;
 
+// TEMPORARY CODE
+Map map;
+
 void Game::init() {
 	running = true;
+	camera_x = 0;
+	camera_y = 0;
 	player = Unit(250, 250);
 
 	// Create a socket for both sending and listening
@@ -32,6 +41,8 @@ void Game::init() {
 	// Start the thread to recieve server packets
 	std::thread serverPacketReciever(Game::serverPacketListener);
 	serverPacketReciever.detach();
+
+	map.generate();
 }
 
 void Game::shutdown() {
@@ -75,6 +86,21 @@ void Game::update(int delta) {
 	if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) {
 		player.move(Direction::LEFT, static_cast<int>(PLAYER_SPEED / delta));
 	}
+	if (state[SDL_SCANCODE_SPACE]) {
+		map.generate();
+	}
+	if (state[SDL_SCANCODE_U]) {
+		camera_y--;
+	}
+	if (state[SDL_SCANCODE_J]) {
+		camera_y++;
+	}
+	if (state[SDL_SCANCODE_K]) {
+		camera_x++;
+	}
+	if (state[SDL_SCANCODE_H]) {
+		camera_x--;
+	}
 
 	// Update unit movements on each update as well
 	for (auto it = movements.begin(); it != movements.end(); ++it) {
@@ -94,6 +120,7 @@ void Game::update(int delta) {
 }
 
 void Game::render() {
+	/*
 	// Render units in the map
 	for (const auto& unit_pair : units) {
 		if (unit_pair.first == client_id) continue;
@@ -103,6 +130,9 @@ void Game::render() {
 	// Render the player
 	std::lock_guard<std::mutex> lock(player_mutex);
 	player.render();
+	*/
+	map.render(camera_x, camera_y);
+	map.render_debug();
 }
 
 bool Game::isRunning() {
@@ -161,7 +191,7 @@ void Game::serverPacketListener() {
 			if (Socket::getPacketType(packet.data) == PACKET_VI) {
 				// TODO: (Ian) Add a packet type to the packets to determine what to parse it as
 				// NOTE: For now, parse the packets as movement packets
-				/*
+				/*	
 				Socket::Packetvi con_packet = Socket::convertPacketvi(packet.data);
 				for (unsigned int i = 0; i < con_packet.vals.size(); i += 3) {
 					// Update the unit if it already exists

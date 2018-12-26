@@ -40,6 +40,9 @@ private:
 
 	static bool running;
 
+	static int camera_x;
+	static int camera_y;
+
 	// TODO: (Ian) include the mutex in the unit class
 	static std::mutex player_mutex;
 	static Unit player;

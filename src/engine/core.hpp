@@ -1,8 +1,10 @@
 #pragma once
 
 #include "utils.hpp"
-#include "clock.hpp"
+#include "profiler/profiler.hpp"
+#include "clock/clock.hpp"
 
 #include "engine.hpp"
-#include "renderer.hpp"
+#include "renderer/renderer.hpp"
+#include "renderer/textRenderer.hpp"
 #include "shaderLoader.hpp"

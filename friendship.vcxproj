@@ -130,21 +130,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\engine\clock.cpp" />
+    <ClCompile Include="src\engine\clock\clock.cpp" />
     <ClCompile Include="src\engine\engine.cpp" />
     <ClCompile Include="src\engine\opengl\indexBuffer.cpp" />
     <ClCompile Include="src\engine\opengl\shader.cpp" />
     <ClCompile Include="src\engine\opengl\texture.cpp" />
     <ClCompile Include="src\engine\opengl\vertexArray.cpp" />
     <ClCompile Include="src\engine\opengl\vertexBuffer.cpp" />
-    <ClCompile Include="src\engine\renderer.cpp" />
+    <ClCompile Include="src\engine\profiler\profiler.cpp" />
+    <ClCompile Include="src\engine\renderer\renderer.cpp" />
     <ClCompile Include="src\engine\shaderLoader.cpp" />
+    <ClCompile Include="src\engine\renderer\textRenderer.cpp" />
     <ClCompile Include="src\game\game.cpp" />
+    <ClCompile Include="src\game\map.cpp" />
     <ClCompile Include="src\game\unit.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\engine\clock.hpp" />
+    <ClInclude Include="src\engine\clock\clock.hpp" />
     <ClInclude Include="src\engine\core.hpp" />
     <ClInclude Include="src\engine\engine.hpp" />
     <ClInclude Include="src\engine\opengl\glwrappers.hpp" />
@@ -154,13 +157,17 @@
     <ClInclude Include="src\engine\opengl\vertexArray.hpp" />
     <ClInclude Include="src\engine\opengl\vertexBuffer.hpp" />
     <ClInclude Include="src\engine\opengl\vertexBufferLayout.hpp" />
-    <ClInclude Include="src\engine\renderer.hpp" />
+    <ClInclude Include="src\engine\profiler\profiler.hpp" />
+    <ClInclude Include="src\engine\renderer\renderer.hpp" />
     <ClInclude Include="src\engine\shaderLoader.hpp" />
+    <ClInclude Include="src\engine\renderer\textRenderer.hpp" />
     <ClInclude Include="src\engine\utils.hpp" />
     <ClInclude Include="src\game\game.hpp" />
     <ClInclude Include="src\game\gameUtils.hpp" />
+    <ClInclude Include="src\game\map.hpp" />
     <ClInclude Include="src\game\unit.hpp" />
     <ClInclude Include="src\utils\utils.hpp" />
+    <ClInclude Include="src\vendor\delaunator.hpp" />
     <ClInclude Include="src\vendor\stb_image.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

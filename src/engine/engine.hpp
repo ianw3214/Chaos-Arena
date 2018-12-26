@@ -11,11 +11,16 @@ public:
 	static void shutdown();
 
 	// Utility methods
+	static int getScreenWidth();
+	static int getScreenHeight();
 	static void swapScreenBuffer();
 	
 private:
 
 	static SDL_Window * m_window;
 	static SDL_GLContext m_context;
+
+	static int m_screenWidth;
+	static int m_screenHeight;
 
 };
