@@ -29,7 +29,7 @@ void Game::init() {
 	running = true;
 	camera_x = 0;
 	camera_y = 0;
-	player = Unit(250, 250);
+	player = Unit();
 
 	// Create a socket for both sending and listening
 	socket = Socket::create();
@@ -43,6 +43,7 @@ void Game::init() {
 	serverPacketReciever.detach();
 
 	map.generate();
+	player.move(map.getSpawnPoint().x, map.getSpawnPoint().y);
 }
 
 void Game::shutdown() {
@@ -75,16 +76,16 @@ void Game::update(int delta) {
 	// Handle keyboard state
 	const Uint8 * state = SDL_GetKeyboardState(NULL);
 	if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP]) {
-		player.move(Direction::UP, static_cast<int>(PLAYER_SPEED / delta));
+		player.move(Direction::UP, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
 	}
 	if (state[SDL_SCANCODE_S] || state[SDL_SCANCODE_DOWN]) {
-		player.move(Direction::DOWN, static_cast<int>(PLAYER_SPEED / delta));
+		player.move(Direction::DOWN, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
 	}
 	if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]) {
-		player.move(Direction::RIGHT, static_cast<int>(PLAYER_SPEED / delta));
+		player.move(Direction::RIGHT, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
 	}
 	if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) {
-		player.move(Direction::LEFT, static_cast<int>(PLAYER_SPEED / delta));
+		player.move(Direction::LEFT, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
 	}
 	if (state[SDL_SCANCODE_SPACE]) {
 		map.generate();
@@ -117,22 +118,28 @@ void Game::update(int delta) {
 			units[(*it).first] = Unit((*it).second.start_x, (*it).second.start_y);
 		}
 	}
+
+	// Just center the camera around the player unit for now
+	camera_x = player.getX() - Engine::getScreenWidth() / 2;
+	camera_y = player.getY() - Engine::getScreenHeight() / 2;
+
 }
 
 void Game::render() {
-	/*
+	// Render the map
+	map.render(camera_x, camera_y);
 	// Render units in the map
 	for (const auto& unit_pair : units) {
 		if (unit_pair.first == client_id) continue;
 		const Unit& unit = unit_pair.second;
-		unit.render();
+		unit.render(camera_x, camera_y);
 	}
 	// Render the player
 	std::lock_guard<std::mutex> lock(player_mutex);
-	player.render();
-	*/
-	map.render(camera_x, camera_y);
-	map.render_debug();
+	player.render(camera_x, camera_y);
+
+	// Debug renders
+	// map.render_debug();
 }
 
 bool Game::isRunning() {

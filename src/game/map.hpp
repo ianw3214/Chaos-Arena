@@ -47,7 +47,15 @@ public:
 
 	void render(int cam_x = 0, int cam_y = 0) const;
 
-	// Map generation algorithm, shouldn't be used by client
+	// Getter methods for map properties
+	int   getMapWidth() const;
+	int   getMapHeight() const;
+	Vec2i getSpawnPoint() const;
+
+	// Utility methods to interact with map
+	bool pointInMap(Vec2i point, int tile_size = TILE_SIZE) const;
+
+	// Map generation algorithm, should be used by server and NOT by client
 	void generate();
 
 	// Map debugging code
@@ -59,6 +67,8 @@ private:
 	int				  map_width;
 	int				  map_height;
 	std::vector<int>  tilemap;
+	// Other map properties
+	Vec2i spawnPoint;
 
 	/* -----------------------------------------------------
 	 * ----------------MAP GENERATION CODE------------------
@@ -69,7 +79,9 @@ private:
 	std::vector<Room> main_rooms;
 	std::vector<Edge> edges;
 	std::vector<Edge> hallways;
-
+	int				  left_x;
+	int				  top_y;
+	
 	// Main helper functions for dungeon generation
 	void generateRooms();
 	void chooseMainRooms();

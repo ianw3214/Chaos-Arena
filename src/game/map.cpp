@@ -29,7 +29,27 @@ void Map::render(int cam_x, int cam_y) const {
 		}
 	}
 
-	Profiler::profileEnd("map_render", true);
+	Profiler::profileEnd("map_render");
+}
+
+int Map::getMapWidth() const {
+	return map_width;
+}
+
+int Map::getMapHeight() const {
+	return map_height;
+}
+
+Vec2i Map::getSpawnPoint() const {
+	return spawnPoint;
+}
+
+bool Map::pointInMap(Vec2i point, int tile_size) const {
+	// basic checks
+	if (point.x < 0 || point.y < 0 || point.x > tile_size * map_width || point.y > tile_size * map_height) return false;
+	int tile_x = point.x / tile_size;
+	int tile_y = point.y / tile_size;
+	return tilemap[tile_y * map_width + tile_x] > 0;
 }
 
 void Map::generate() {
@@ -47,12 +67,20 @@ void Map::generate() {
 			rooms_generated = true;
 		}
 	} while (!rooms_generated);
-	
+
 	chooseMainRooms();
 	generateEdges();
 	generateHallways();
 
 	generateTilemap();
+
+	{	// Start generating other level properties
+		int spawn_index = rand() % main_rooms.size();
+		const Room& spawn_room = main_rooms[spawn_index];
+		int spawn_x = spawn_room.pos.x + rand() % spawn_room.w;
+		int spawn_y = spawn_room.pos.y + rand() % spawn_room.h;
+		spawnPoint = { (spawn_x - left_x) * 64 + 32, (spawn_y - top_y) * 64 + 32};
+	}
 
 }
 
@@ -294,8 +322,10 @@ void Map::generateTilemap() {
 	// Create the tilemap and initalize everything to 0
 	tilemap = std::vector<int>((max_x - min_x + 1) * (max_y - min_y + 1), 0);
 	// Start filling in the tilemap with rooms
-	map_width = max_x - min_x + 1;
-	map_height = max_y - min_y + 1;
+	map_width	= max_x - min_x + 1;
+	map_height	= max_y - min_y + 1;
+	left_x		= min_x;
+	top_y		= min_y;
 	for (const Room& room : main_rooms) {
 		for (int y = 0; y < room.h; ++y) {
 			for (int x = 0; x < room.w; ++x) {

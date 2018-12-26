@@ -7,7 +7,9 @@
 #include <unordered_map>
 #include <mutex>
 
-#define PLAYER_SPEED	100.f
+// TODO: (Ian) Figure out a better way of storing this
+#define UNIT_PER_TILE	64
+#define PLAYER_SPEED	8
 
 // Helper struct to sync player movement to the server
 #define SERVER_INTERVAL	500.f
