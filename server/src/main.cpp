@@ -2,7 +2,7 @@
 #include "common.hpp"
 #include "util.hpp"
 
-#include "instance.hpp"
+#include "game/instance.hpp"
 
 #include <ctime>
 

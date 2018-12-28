@@ -9,7 +9,7 @@
  */
 
 // Temporary defines, move to a config file or take from input or something
-// TODO: (Ian) Figureo ut where to put these defines
+// TODO: (Ian) Figure out where to put these defines
 #define GEN_RADIUS			15
 #define MAX_WIDTH			10
 #define MAX_HEIGHT			10

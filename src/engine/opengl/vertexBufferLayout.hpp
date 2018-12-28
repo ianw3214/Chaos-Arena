@@ -14,6 +14,7 @@ struct VertexBufferLayoutElement {
 		case GL_FLOAT:			return sizeof(GLfloat);
 		case GL_UNSIGNED_INT:	return sizeof(GLuint);
 		case GL_UNSIGNED_BYTE:	return sizeof(GLbyte);
+		case GL_INT:			return sizeof(GLint);
 		}
 		// Notify any unsupported types
 		// ASSERT(false);
@@ -45,6 +46,11 @@ public:
 	void pushUchar(unsigned int count) {
 		elements.push_back({ GL_UNSIGNED_BYTE, count, GL_TRUE });
 		stride += VertexBufferLayoutElement::getSizeOfType(GL_UNSIGNED_BYTE) * count;
+	}
+
+	void pushInt(unsigned int count) {
+		elements.push_back({ GL_INT, count, GL_TRUE });
+		stride += VertexBufferLayoutElement::getSizeOfType(GL_INT) * count;
 	}
 
 private:

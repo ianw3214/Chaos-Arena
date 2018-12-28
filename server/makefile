@@ -1,8 +1,8 @@
 CXX = g++
 OUTPUT = -o bin/main
-INCLUDES = -I../common/
+INCLUDES = -I../common/ -I./src/vendor/
 FLAGS = -std=c++17 -g -Wall $(INCLUDES) -pthread
-OBJS = main.o instance.o
+OBJS = main.o instance.o map.o
 BIN_OBJS = $(addprefix bin/objs/, $(OBJS))
 
 # FLAGS THAT DEPEND ON THE OPERATING SYSTEM
@@ -12,7 +12,7 @@ ifeq ($(OS),Windows_NT)
 # else
 endif
 
-VPATH = src ../socket ../common bin bin/objs
+VPATH = src src/game ../socket ../common bin bin/objs
 TARGET = bin/server
 
 all: $(TARGET)
@@ -31,6 +31,7 @@ bin_objs:
 
 main.o : main.cpp util.hpp
 instance.o: instance.cpp instance.hpp
+map.o: map.cpp map.hpp
 
 .cpp.o:
 	$(CXX) $(FLAGS) -c $< -o bin/objs/$@

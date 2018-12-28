@@ -9,8 +9,13 @@
 #define PACKET_VI   3
 typedef char PacketType;
 
+// Some defines to make things easier
 #define PACKET_MSG_CONNECT      0
 #define PACKET_MSG_DISCONNECT   1
+
+#define PACKET_DATA_ROOM        2
+#define PACKET_DATA_HALLWAY     3
+#define PACKET_DUNGEON_READY    4
 
 // Helper function for writing data + updating pointer for packets
 template<class T>

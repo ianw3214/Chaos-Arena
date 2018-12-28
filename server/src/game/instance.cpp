@@ -5,6 +5,9 @@
 
 Instance::Instance(const Socket::Socket& socket) : socket(socket) {
 
+    // Start the thread to send packets from the queue
+    std::thread t_packetSender(&Instance::packetSender, this);
+    t_packetSender.detach();
 
     // Start the thread to send clients player info
     std::thread t_clientSender(&Instance::clientSender, this);
@@ -25,7 +28,8 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
             clients.push_back({clientId, packet.address, 0, 0});
             Socket::Packet1i response = { clientId };
             Socket::BasicPacket con_response = Socket::createBasicPacket(response);
-            Socket::send(socket, packet.address, con_response);
+            // Socket::send(socket, packet.address, con_response);
+            queuePacket(con_response, packet.address);
             LOG("Accepted client connection; client ID: " << clientId);
         }
     }
@@ -58,10 +62,16 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
     }
 }
 
+void Instance::queuePacket(Socket::BasicPacket packet, Socket::Address address) {
+    packet_lock.lock();
+    packets.emplace(packet, address);
+    packet_lock.unlock();
+    return;
+}
+
 void Instance::clientSender() {
 
     while (true) {
-        // LOG("SENDING CLIENT PACKETS");
         // create the client packet
         Socket::Packetvi packet;
         for (const ClientUnit& client : clients) {
@@ -71,10 +81,23 @@ void Instance::clientSender() {
         }
         Socket::BasicPacket con_packet = Socket::createBasicPacket(packet);
         for (const ClientUnit& client : clients) {
-            Socket::send(socket, client.m_address, con_packet);
+            // Socket::send(socket, client.m_address, con_packet);
+            queuePacket(con_packet, client.m_address);
         }
         // TODO: (Ian) Use a delta time calculation to determine send frequency
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
+}
+
+void Instance::packetSender() {
+    while (true) {
+        if (!packets.empty()) {
+            packet_lock.lock();
+            QueuePacket packet = packets.front();
+            packets.pop();
+            packet_lock.unlock();
+            Socket::send(socket, packet.address, packet.packet);
+        }
+    }
 }

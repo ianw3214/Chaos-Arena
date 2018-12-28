@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <mutex>
 
+class Texture;
+
 // TODO: (Ian) Figure out a better way of storing this
 #define UNIT_PER_TILE	64
 #define PLAYER_SPEED	8
@@ -59,5 +61,8 @@ private:
 	static int client_id;
 	// TODO: (Ian) Find a better solution instead of busy waiting
 	static bool connected;
+
+	// TEST
+	static Texture * texture;
 
 };

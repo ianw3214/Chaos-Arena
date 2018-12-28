@@ -24,6 +24,7 @@ bool			Game::connected;
 
 // TEMPORARY CODE
 Map map;
+Texture * Game::texture;
 
 void Game::init() {
 	running = true;
@@ -44,6 +45,9 @@ void Game::init() {
 
 	map.generate();
 	player.move(map.getSpawnPoint().x, map.getSpawnPoint().y);
+
+	// Debug
+	texture = new Texture("res/assets/test.png");
 }
 
 void Game::shutdown() {
