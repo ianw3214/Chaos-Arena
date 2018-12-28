@@ -44,6 +44,28 @@ Vec2i Map::getSpawnPoint() const {
 	return spawnPoint;
 }
 
+void Map::clearMapData() {
+	map_width = 0;
+	map_height = 0;
+	tilemap.clear();
+	spawnPoint = { 0, 0 };
+	// Also clear map generation helper variables
+	rooms.clear();
+	main_rooms.clear();
+	edges.clear();
+	hallways.clear();
+	left_x = 0;
+	top_y = 0;
+}
+
+void Map::addMainRoom(Room room) {
+	main_rooms.push_back(room);
+}
+
+void Map::addHallwayEdge(Edge edge) {
+	hallways.push_back(edge);
+}
+
 bool Map::pointInMap(Vec2i point, int tile_size) const {
 	// basic checks
 	if (point.x < 0 || point.y < 0 || point.x > tile_size * map_width || point.y > tile_size * map_height) return false;
@@ -52,6 +74,7 @@ bool Map::pointInMap(Vec2i point, int tile_size) const {
 	return tilemap[tile_y * map_width + tile_x] > 0;
 }
 
+// THIS FUNCTION SHOULD NOT BE USED BY THE CLIENT
 void Map::generate() {
 	bool rooms_generated = false;
 	do {
@@ -82,6 +105,59 @@ void Map::generate() {
 		spawnPoint = { (spawn_x - left_x) * 64 + 32, (spawn_y - top_y) * 64 + 32};
 	}
 
+}
+
+#define TILE_AT(x, y, width, min_x, min_y) ((y - min_y) * width + (x - min_x))
+void Map::generateTilemap() {
+	// Clear previous state
+	tilemap.clear();
+	// First find the max x, min x, max y and min y of the map
+	int max_x = 0, min_x = 0;
+	int max_y = 0, min_y = 0;
+	for (const Room& room : main_rooms) {
+		if (room.pos.x + room.w > max_x) max_x = room.pos.x + room.w;
+		if (room.pos.x < min_x) min_x = room.pos.x;
+		if (room.pos.y + room.h > max_y) max_y = room.pos.y + room.h;
+		if (room.pos.y < min_y) min_y = room.pos.y;
+	}
+	// Create the tilemap and initalize everything to 0
+	tilemap = std::vector<int>((max_x - min_x + 1) * (max_y - min_y + 1), 0);
+	// Start filling in the tilemap with rooms
+	map_width = max_x - min_x + 1;
+	map_height = max_y - min_y + 1;
+	left_x = min_x;
+	top_y = min_y;
+	for (const Room& room : main_rooms) {
+		for (int y = 0; y < room.h; ++y) {
+			for (int x = 0; x < room.w; ++x) {
+				tilemap[TILE_AT(room.pos.x + x, room.pos.y + y, map_width, min_x, min_y)] = 1;
+			}
+		}
+	}
+	// Then fill in the tilemap with hallways
+	for (const Edge& hall : hallways) {
+		// TODO: (Ian) Maybe fill in the missing corners of connected hallways
+		// Horizontal hallway
+		if (hall.v1.y == hall.v2.y) {
+			int left = hall.v1.x < hall.v2.x ? hall.v1.x : hall.v2.x;
+			for (int i = 0; i < std::abs(hall.v1.x - hall.v2.x); ++i) {
+				tilemap[TILE_AT(left + i, hall.v1.y, map_width, min_x, min_y)] = 1;
+				// Assume adding the height is always ok because of how room sizes work
+				tilemap[TILE_AT(left + i, hall.v1.y - 1, map_width, min_x, min_y)] = 1;
+				tilemap[TILE_AT(left + i, hall.v1.y + 1, map_width, min_x, min_y)] = 1;
+			}
+		}
+		// Vertical hallway
+		if (hall.v1.x == hall.v2.x) {
+			int top = hall.v1.y < hall.v2.y ? hall.v1.y : hall.v2.y;
+			for (int i = 0; i < std::abs(hall.v1.y - hall.v2.y); ++i) {
+				tilemap[TILE_AT(hall.v1.x, top + i, map_width, min_x, min_y)] = 1;
+				// Assume adding the width is always ok because of how room sizes work
+				tilemap[TILE_AT(hall.v1.x - 1, top + i, map_width, min_x, min_y)] = 1;
+				tilemap[TILE_AT(hall.v1.x + 1, top + i, map_width, min_x, min_y)] = 1;
+			}
+		}
+	}
 }
 
 // TODO: (Ian) Get rid of the ugly magic number 3s
@@ -136,16 +212,14 @@ void Map::render_debug() const {
 		copy2.y += Engine::getScreenHeight() / 2;
 		Renderer::drawLine(copy1, copy2, hall_colour);
 	}
-	/*
-	// Render the tilemap
-	Colour empty_colour = { 0.1f, 0.1f, 0.1f };
-	Colour full_colour = { 0.8f, 0.8f, 0.8f };
-	for (int i = 0; i < static_cast<int>(tilemap.size()); ++i) {
-		Rect rect = { { (i % map_width) * 3 + Engine::getScreenWidth() / 2, (i / map_width) * 3 + Engine::getScreenHeight() / 2 }, 3, 3 };
-		if (tilemap[i] > 0) Renderer::drawRectOutline(rect, full_colour);
-		else Renderer::drawRectOutline(rect, empty_colour);
-	}
-	*/
+}
+
+void Map::generateSpawnPoint() {
+	int spawn_index = rand() % main_rooms.size();
+	const Room& spawn_room = main_rooms[spawn_index];
+	int spawn_x = spawn_room.pos.x + rand() % spawn_room.w;
+	int spawn_y = spawn_room.pos.y + rand() % spawn_room.h;
+	spawnPoint = { (spawn_x - left_x) * 64 + 32, (spawn_y - top_y) * 64 + 32 };
 }
 
 void Map::generateRooms() {
@@ -302,59 +376,6 @@ void Map::generateHallways() {
 			edge2.v2.y = room2_mid.y > room1_mid.y ? room2.pos.y : room2.pos.y + room2.h;
 			hallways.push_back(edge1);
 			hallways.push_back(edge2);
-		}
-	}
-}
-
-#define TILE_AT(x, y, width, min_x, min_y) ((y - min_y) * width + (x - min_x))
-void Map::generateTilemap() {
-	// Clear previous state
-	tilemap.clear();
-	// First find the max x, min x, max y and min y of the map
-	int max_x = 0, min_x = 0;
-	int max_y = 0, min_y = 0;
-	for (const Room& room : main_rooms) {
-		if (room.pos.x + room.w > max_x) max_x = room.pos.x + room.w;
-		if (room.pos.x < min_x) min_x = room.pos.x;
-		if (room.pos.y + room.h > max_y) max_y = room.pos.y + room.h;
-		if (room.pos.y < min_y) min_y = room.pos.y;
-	}
-	// Create the tilemap and initalize everything to 0
-	tilemap = std::vector<int>((max_x - min_x + 1) * (max_y - min_y + 1), 0);
-	// Start filling in the tilemap with rooms
-	map_width	= max_x - min_x + 1;
-	map_height	= max_y - min_y + 1;
-	left_x		= min_x;
-	top_y		= min_y;
-	for (const Room& room : main_rooms) {
-		for (int y = 0; y < room.h; ++y) {
-			for (int x = 0; x < room.w; ++x) {
-				tilemap[TILE_AT(room.pos.x + x, room.pos.y + y, map_width, min_x, min_y)] = 1;
-			}
-		}
-	}
-	// Then fill in the tilemap with hallways
-	for (const Edge& hall : hallways) {
-		// TODO: (Ian) Maybe fill in the missing corners of connected hallways
-		// Horizontal hallway
-		if (hall.v1.y == hall.v2.y) {
-			int left = hall.v1.x < hall.v2.x ? hall.v1.x : hall.v2.x;
-			for (int i = 0; i < std::abs(hall.v1.x - hall.v2.x); ++i) {
-				tilemap[TILE_AT(left + i, hall.v1.y, map_width, min_x, min_y)] = 1;
-				// Assume adding the height is always ok because of how room sizes work
-				tilemap[TILE_AT(left + i, hall.v1.y - 1, map_width, min_x, min_y)] = 1;
-				tilemap[TILE_AT(left + i, hall.v1.y + 1, map_width, min_x, min_y)] = 1;
-			}
-		}
-		// Vertical hallway
-		if (hall.v1.x == hall.v2.x) {
-			int top = hall.v1.y < hall.v2.y ? hall.v1.y : hall.v2.y;
-			for (int i = 0; i < std::abs(hall.v1.y - hall.v2.y); ++i) {
-				tilemap[TILE_AT(hall.v1.x, top + i, map_width, min_x, min_y)] = 1;
-				// Assume adding the width is always ok because of how room sizes work
-				tilemap[TILE_AT(hall.v1.x - 1, top + i, map_width, min_x, min_y)] = 1;
-				tilemap[TILE_AT(hall.v1.x + 1, top + i, map_width, min_x, min_y)] = 1;
-			}
 		}
 	}
 }

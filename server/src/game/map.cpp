@@ -26,6 +26,7 @@ std::vector<Socket::BasicPacket> Map::generatePackets() {
 	// Turn all the hallways into basic packets
 	for (const Edge& edge : hallways) {
 		Socket::Packetvi packet;
+		packet.vals.push_back(PACKET_DATA_HALLWAY);
 		packet.vals.push_back(edge.v1.x);
 		packet.vals.push_back(edge.v1.y);
 		packet.vals.push_back(edge.v2.x);
@@ -33,6 +34,8 @@ std::vector<Socket::BasicPacket> Map::generatePackets() {
 		packets.push_back(Socket::createBasicPacket(packet));
 	}
 	// Turn additional data into basic packets
+	// TODO: (Ian) Implement this...
+	return packets;
 }
 
 void Map::generate() {

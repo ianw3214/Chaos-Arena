@@ -5,6 +5,9 @@
 
 Instance::Instance(const Socket::Socket& socket) : socket(socket) {
 
+    // Initialize instance properties
+    map.generate();
+
     // Start the thread to send packets from the queue
     std::thread t_packetSender(&Instance::packetSender, this);
     t_packetSender.detach();
@@ -31,6 +34,14 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
             // Socket::send(socket, packet.address, con_response);
             queuePacket(con_response, packet.address);
             LOG("Accepted client connection; client ID: " << clientId);
+            // Send dungeon generation data to the client
+            // TODO: (Ian) Handle packet loss
+            auto packets = map.generatePackets();
+            for (Socket::BasicPacket& map_packet : packets) {
+                queuePacket(map_packet, packet.address);
+            }
+            Socket::Packet1i ready_packet = { PACKET_DUNGEON_READY };
+            queuePacket(Socket::createBasicPacket(ready_packet), packet.address);
         }
     }
     if (Socket::getPacketType(packet.data) == PACKET_2I) {
@@ -74,6 +85,7 @@ void Instance::clientSender() {
     while (true) {
         // create the client packet
         Socket::Packetvi packet;
+        packet.vals.push_back(PACKET_PLAYER_POS);
         for (const ClientUnit& client : clients) {
             packet.vals.push_back(client.m_id);
             packet.vals.push_back(client.m_x);

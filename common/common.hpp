@@ -17,6 +17,8 @@ typedef char PacketType;
 #define PACKET_DATA_HALLWAY     3
 #define PACKET_DUNGEON_READY    4
 
+#define PACKET_PLAYER_POS       5
+
 // Helper function for writing data + updating pointer for packets
 template<class T>
 void writeData(const T& data, char*& ptr) {

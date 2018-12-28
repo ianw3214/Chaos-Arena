@@ -52,14 +52,25 @@ public:
 	int   getMapHeight() const;
 	Vec2i getSpawnPoint() const;
 
+	// Setter methods to use for incoming packets
+	void clearMapData();
+	void addMainRoom(Room room);
+	void addHallwayEdge(Edge edge);
+
 	// Utility methods to interact with map
 	bool pointInMap(Vec2i point, int tile_size = TILE_SIZE) const;
 
 	// Map generation algorithm, should be used by server and NOT by client
 	void generate();
+	// Generate the tilemap from the generated rooms
+	void generateTilemap();
 
 	// Map debugging code
 	void render_debug() const;
+
+	// TEMPORARY CODE, REMOVE LATER <======================
+	// TODO: (Ian) REMOVE THIS
+	void generateSpawnPoint();
 
 private:
 
@@ -88,8 +99,6 @@ private:
 	bool separateRooms();
 	void generateEdges();
 	void generateHallways();
-	// Generate the tilemap from the generated rooms
-	void generateTilemap();
 	// Other misc helper functions
 	int  getRoomIdAt(Vec2i pos);
 	Room getRoomById(int id);

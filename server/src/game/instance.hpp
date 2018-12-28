@@ -8,6 +8,8 @@
 #include <queue>
 #include <mutex>
 
+#include "map.hpp"
+
 #include <iostream>
 #define LOG(x) std::cout << "[LOG]: " << x << std::endl;
 #define ERR(x) std::cerr << "[ERR]: " << x << std::endl;
@@ -18,6 +20,8 @@ const std::string connect_message = std::string("connect");
 struct QueuePacket {
     Socket::BasicPacket packet;
     Socket::Address address;
+    QueuePacket(Socket::BasicPacket packet, Socket::Address address) 
+        : packet(packet), address(address) {}
 };
 
 struct ClientUnit {
@@ -46,6 +50,8 @@ private:
 
     // NOTE: Using an unordered map may have better performance because we need lookup
     std::list<ClientUnit> clients;
+
+    Map map;
 
     const Socket::Socket& socket;
 

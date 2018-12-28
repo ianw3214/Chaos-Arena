@@ -10,6 +10,7 @@
 #include "game/map.hpp"
 
 // Static class variables
+bool			Game::ready;
 bool			Game::running;
 int				Game::camera_x;
 int				Game::camera_y;
@@ -24,9 +25,9 @@ bool			Game::connected;
 
 // TEMPORARY CODE
 Map map;
-Texture * Game::texture;
 
 void Game::init() {
+	ready = false;
 	running = true;
 	camera_x = 0;
 	camera_y = 0;
@@ -43,11 +44,11 @@ void Game::init() {
 	std::thread serverPacketReciever(Game::serverPacketListener);
 	serverPacketReciever.detach();
 
+	/*
 	map.generate();
 	player.move(map.getSpawnPoint().x, map.getSpawnPoint().y);
-
-	// Debug
-	texture = new Texture("res/assets/test.png");
+	*/
+	map.clearMapData();
 }
 
 void Game::shutdown() {
@@ -67,6 +68,7 @@ inline T lerp(T v0, T v1, float t) {
 }
 
 void Game::update(int delta) {
+
 	SDL_Event e;
 	while (SDL_PollEvent(&e) > 0) {
 		if (e.type == SDL_KEYDOWN) {
@@ -199,38 +201,58 @@ void Game::serverPacketListener() {
 	while (true) {
 		Socket::Packet<Socket::BasicPacket> packet = Socket::recieve<Socket::BasicPacket>(socket);
 		if (packet.has_data) {
+			if (Socket::getPacketType(packet.data) == PACKET_1I) {
+				Socket::Packet1i con_packet = Socket::convertPacket1i(packet.data);
+				if (con_packet.val == PACKET_DUNGEON_READY) {
+					// Set a flag here to indicate ready
+					map.generateTilemap();
+					ready = true;
+					// Put the player in a random point in the map for now
+					// TODO: (Ian) actually get the spawn point from the server
+					map.generateSpawnPoint();
+					player.move(map.getSpawnPoint().x, map.getSpawnPoint().y);
+				}
+			}
 			if (Socket::getPacketType(packet.data) == PACKET_VI) {
-				// TODO: (Ian) Add a packet type to the packets to determine what to parse it as
-				// NOTE: For now, parse the packets as movement packets
-				/*	
 				Socket::Packetvi con_packet = Socket::convertPacketvi(packet.data);
-				for (unsigned int i = 0; i < con_packet.vals.size(); i += 3) {
-					// Update the unit if it already exists
-					if (units.find(con_packet.vals[i]) != units.end()) {
-						units[con_packet.vals[i]].move(con_packet.vals[i + 1], con_packet.vals[i + 2]);
-					} else {
-						units[con_packet.vals[i]] = Unit(con_packet.vals[i + 1], con_packet.vals[i + 2]);
+				if (con_packet.vals.size() <= 0) continue;
+				if (con_packet.vals[0] == PACKET_PLAYER_POS) {
+					for (unsigned int i = 1; i < con_packet.vals.size(); i += 3) {
+						// Update the unit movement if it already exists
+						int id = con_packet.vals[i];
+						int x = con_packet.vals[i + 1];
+						int y = con_packet.vals[i + 2];
+						int timestamp = SDL_GetTicks();
+						if (movements.find(id) != movements.end()) {
+							// ASSUME UNITS[ID] ALREADY EXISTS
+							movements[id].start_x = units[id].getX();
+							movements[id].start_y = units[id].getY();
+							movements[id].goal_x = x;
+							movements[id].goal_y = y;
+							movements[id].timestamp = timestamp;
+						} else {
+							UnitMovement temp = UnitMovement{ x, y, x, y, timestamp };
+							movements[id] = temp;
+						}
 					}
 				}
-				*/
-				Socket::Packetvi con_packet = Socket::convertPacketvi(packet.data);
-				for (unsigned int i = 0; i < con_packet.vals.size(); i += 3) {
-					// Update the unit movement if it already exists
-					int id = con_packet.vals[i];
-					int x = con_packet.vals[i + 1];
-					int y = con_packet.vals[i + 2];
-					int timestamp = SDL_GetTicks();
-					if (movements.find(id) != movements.end()) {
-						// ASSUME UNITS[ID] ALREADY EXISTS
-						movements[id].start_x = units[id].getX();
-						movements[id].start_y = units[id].getY();
-						movements[id].goal_x = x;
-						movements[id].goal_y = y;
-						movements[id].timestamp = timestamp;
-					} else {
-						UnitMovement temp = UnitMovement{ x, y, x, y, timestamp };
-						movements[id] = temp;
-					}
+				if (con_packet.vals[0] == PACKET_DATA_ROOM) {
+					// Add a room to the map
+					if (con_packet.vals.size() < 5) continue;	// ERROR
+					int x = con_packet.vals[1];
+					int y = con_packet.vals[2];
+					int w = con_packet.vals[3];
+					int h = con_packet.vals[4];
+					map.addMainRoom({ 0, {x, y}, w, h });
+				}
+				if (con_packet.vals[0] == PACKET_DATA_HALLWAY) {
+					// Add a hallway edge to the map
+					if (con_packet.vals.size() < 5) continue;	// ERROR
+					int x1 = con_packet.vals[1];
+					int y1 = con_packet.vals[2];
+					int x2 = con_packet.vals[3];
+					int y2 = con_packet.vals[4];
+					map.addHallwayEdge({ 0, 0, { x1, y1 }, { x2, y2 } });
 				}
 			}
 		}
