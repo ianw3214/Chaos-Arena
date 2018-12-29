@@ -69,12 +69,20 @@ void Map::addHallwayEdge(Edge edge) {
 	hallways.push_back(edge);
 }
 
+void Map::setSpawnPoint(int x, int y) {
+	spawnPoint = Vec2i{ x, y };
+}
+
 bool Map::pointInMap(Vec2i point, int tile_size) const {
 	// basic checks
 	if (point.x < 0 || point.y < 0 || point.x > tile_size * map_width || point.y > tile_size * map_height) return false;
 	int tile_x = point.x / tile_size;
 	int tile_y = point.y / tile_size;
 	return tilemap[tile_y * map_width + tile_x] > 0;
+}
+
+Vec2i Map::tileToPixelCoords(Vec2i tile_coords) const {
+	return Vec2i{ (tile_coords.x - left_x) * TILE_SIZE, (tile_coords.y - top_y) * TILE_SIZE};
 }
 
 // THIS FUNCTION SHOULD NOT BE USED BY THE CLIENT
@@ -215,14 +223,6 @@ void Map::render_debug() const {
 		copy2.y += Engine::getScreenHeight() / 2;
 		Renderer::drawLine(copy1, copy2, hall_colour);
 	}
-}
-
-void Map::generateSpawnPoint() {
-	int spawn_index = rand() % main_rooms.size();
-	const Room& spawn_room = main_rooms[spawn_index];
-	int spawn_x = spawn_room.pos.x + rand() % spawn_room.w;
-	int spawn_y = spawn_room.pos.y + rand() % spawn_room.h;
-	spawnPoint = { (spawn_x - left_x) * 64 + 32, (spawn_y - top_y) * 64 + 32 };
 }
 
 void Map::generateRooms() {

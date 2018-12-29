@@ -33,8 +33,15 @@ std::vector<Socket::BasicPacket> Map::generatePackets() {
 		packet.vals.push_back(edge.v2.y);
 		packets.push_back(Socket::createBasicPacket(packet));
 	}
-	// Turn additional data into basic packets
-	// TODO: (Ian) Implement this...
+	// Send a packet for spawn room data as well
+	{
+		const Room& spawn_room = main_rooms[spawn_room_index];
+		Socket::Packet3i packet;
+		packet.first = PACKET_DATA_SPAWNPOINT;
+		packet.second = spawn_room.pos.x + rand() % spawn_room.w;
+		packet.third = spawn_room.pos.y + rand() % spawn_room.h;
+		packets.push_back(Socket::createBasicPacket(packet));
+	}
 	return packets;
 }
 
@@ -60,10 +67,7 @@ void Map::generate() {
 
 	generateTilemap();
 
-	{	// Start generating other level properties
-		int spawn_index = rand() % main_rooms.size();
-        // TODO: (Ian) Start with the spawn point...
-	}
+	generateSpawnRoom();
 
 }
 
@@ -225,6 +229,10 @@ void Map::generateHallways() {
 			hallways.push_back(edge2);
 		}
 	}
+}
+
+void Map::generateSpawnRoom() {
+	spawn_room_index = rand() % main_rooms.size();
 }
 
 #define TILE_AT(x, y, width, min_x, min_y) ((y - min_y) * width + (x - min_x))

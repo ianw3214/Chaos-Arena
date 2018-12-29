@@ -65,6 +65,7 @@ private:
 	int				  map_width;
 	int				  map_height;
 	std::vector<int>  tilemap;
+	int				  spawn_room_index;
 
     // Map generation helper variables
     std::vector<Room> rooms;
@@ -80,6 +81,8 @@ private:
 	bool separateRooms();
 	void generateEdges();
 	void generateHallways();
+	// Generate other properties of the dungeon
+	void generateSpawnRoom();
 	// Generate the tilemap from the generated rooms
 	void generateTilemap();
 	// Other misc helper functions

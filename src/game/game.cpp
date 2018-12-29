@@ -37,6 +37,7 @@ void Game::init() {
 	socket = Socket::create();
 	Socket::bind(socket);
 
+	// TODO: (Ian) Join these threads in the end instead of detaching them
 	// Start the thread to send player position
 	std::thread sendPlayerPosThread(Game::playerPosSender);
 	sendPlayerPosThread.detach();
@@ -44,10 +45,6 @@ void Game::init() {
 	std::thread serverPacketReciever(Game::serverPacketListener);
 	serverPacketReciever.detach();
 
-	/*
-	map.generate();
-	player.move(map.getSpawnPoint().x, map.getSpawnPoint().y);
-	*/
 	map.clearMapData();
 }
 
@@ -209,11 +206,15 @@ void Game::serverPacketListener() {
 				if (con_packet.val == PACKET_DUNGEON_READY) {
 					// Set a flag here to indicate ready
 					map.generateTilemap();
+					Vec2i spawn_coords = map.tileToPixelCoords(map.getSpawnPoint());
+					player.move(spawn_coords.x, spawn_coords.y);
 					ready = true;
-					// Put the player in a random point in the map for now
-					// TODO: (Ian) actually get the spawn point from the server
-					map.generateSpawnPoint();
-					player.move(map.getSpawnPoint().x, map.getSpawnPoint().y);
+				}
+			}
+			if (Socket::getPacketType(packet.data) == PACKET_3I) {
+				Socket::Packet3i con_packet = Socket::convertPacket3i(packet.data);
+				if (con_packet.first == PACKET_DATA_SPAWNPOINT) {
+					map.setSpawnPoint(con_packet.second, con_packet.third);
 				}
 			}
 			if (Socket::getPacketType(packet.data) == PACKET_VI) {

@@ -56,9 +56,11 @@ public:
 	void clearMapData();
 	void addMainRoom(Room room);
 	void addHallwayEdge(Edge edge);
+	void setSpawnPoint(int x, int y);
 
 	// Utility methods to interact with map
 	bool pointInMap(Vec2i point, int tile_size = TILE_SIZE) const;
+	Vec2i tileToPixelCoords(Vec2i tile_coords) const;
 
 	// Map generation algorithm, should be used by server and NOT by client
 	void generate();
@@ -68,10 +70,6 @@ public:
 	// Map debugging code
 	void render_debug() const;
 
-	// TEMPORARY CODE, REMOVE LATER <======================
-	// TODO: (Ian) REMOVE THIS
-	void generateSpawnPoint();
-	
 private:
 
 	// The actual map data
