@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include "opengl/shader.hpp"
+#include "../opengl/shader.hpp"
 
 typedef const std::unique_ptr<Shader>& ShaderRef;
 

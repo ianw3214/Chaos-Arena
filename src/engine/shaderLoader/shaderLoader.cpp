@@ -1,6 +1,6 @@
 #include "shaderLoader.hpp"
 
-#include "utils.hpp"
+#include "engine/utils.hpp"
 
 std::unordered_map<std::string, std::unique_ptr<Shader>> ShaderLoader::shaders;
 

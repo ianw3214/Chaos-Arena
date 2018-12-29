@@ -71,7 +71,7 @@ public:
 	// TEMPORARY CODE, REMOVE LATER <======================
 	// TODO: (Ian) REMOVE THIS
 	void generateSpawnPoint();
-
+	
 private:
 
 	// The actual map data

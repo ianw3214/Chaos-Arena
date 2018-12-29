@@ -13,6 +13,8 @@ Vec2i getRandomPointInCircle(int radius) {
 	return Vec2i{ static_cast<int>(r * std::cos(t) * radius), static_cast<int>(r * std::sin(t) * radius) };
 }
 
+// Temporary code, TODO: (Ian) change this
+#define TILE_PATH "res/assets/tiles/tile.png"
 void Map::render(int cam_x, int cam_y) const {
 	Profiler::profileStart("map_render");
 
@@ -24,7 +26,8 @@ void Map::render(int cam_x, int cam_y) const {
 			if ((y + 1) * TILE_SIZE - cam_y < 0) continue;
 			if ((y * TILE_SIZE - cam_y > Engine::getScreenHeight())) continue;
 			if (tilemap[y * map_width + x] == 1) {
-				Renderer::drawRectOutline({ x * TILE_SIZE - cam_x, y * TILE_SIZE - cam_y }, TILE_SIZE, TILE_SIZE, { 1.f, 1.f, 1.f });
+				// Renderer::drawRectOutline({ x * TILE_SIZE - cam_x, y * TILE_SIZE - cam_y }, TILE_SIZE, TILE_SIZE, { 1.f, 1.f, 1.f });
+				Renderer::drawTexture({ x * TILE_SIZE - cam_x, y * TILE_SIZE - cam_y }, TILE_SIZE, TILE_SIZE, *TextureManager::getTexture(TILE_PATH));
 			}
 		}
 	}

@@ -69,65 +69,68 @@ inline T lerp(T v0, T v1, float t) {
 
 void Game::update(int delta) {
 
-	SDL_Event e;
-	while (SDL_PollEvent(&e) > 0) {
-		if (e.type == SDL_KEYDOWN) {
-			if (e.key.keysym.sym == SDLK_ESCAPE) {
-				running = false;
+	if (ready) {
+		SDL_Event e;
+		while (SDL_PollEvent(&e) > 0) {
+			if (e.type == SDL_KEYDOWN) {
+				if (e.key.keysym.sym == SDLK_ESCAPE) {
+					running = false;
+				}
 			}
 		}
-	}
 
-	std::lock_guard<std::mutex> lock(player_mutex);
-	// Handle keyboard state
-	const Uint8 * state = SDL_GetKeyboardState(NULL);
-	if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP]) {
-		player.move(Direction::UP, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
-	}
-	if (state[SDL_SCANCODE_S] || state[SDL_SCANCODE_DOWN]) {
-		player.move(Direction::DOWN, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
-	}
-	if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]) {
-		player.move(Direction::RIGHT, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
-	}
-	if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) {
-		player.move(Direction::LEFT, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
-	}
-	if (state[SDL_SCANCODE_SPACE]) {
-		map.generate();
-	}
-	if (state[SDL_SCANCODE_U]) {
-		camera_y--;
-	}
-	if (state[SDL_SCANCODE_J]) {
-		camera_y++;
-	}
-	if (state[SDL_SCANCODE_K]) {
-		camera_x++;
-	}
-	if (state[SDL_SCANCODE_H]) {
-		camera_x--;
-	}
-
-	// Update unit movements on each update as well
-	for (auto it = movements.begin(); it != movements.end(); ++it) {
-		int timestamp = SDL_GetTicks();
-		// If the unit exists, update its movement
-		if (units.find((*it).first) != units.end()) {
-			Unit& unit = units.at((*it).first);
-			int x = lerp((*it).second.start_x, (*it).second.goal_x, static_cast<float>(timestamp - (*it).second.timestamp) / SERVER_INTERVAL);
-			int y = lerp((*it).second.start_y, (*it).second.goal_y, static_cast<float>(timestamp - (*it).second.timestamp) / SERVER_INTERVAL);
-			unit.move(x, y);
+		std::lock_guard<std::mutex> lock(player_mutex);
+		// Handle keyboard state
+		const Uint8 * state = SDL_GetKeyboardState(NULL);
+		if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP]) {
+			player.move(Direction::UP, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
 		}
-		// Otherwise, create the unit
-		else {
-			units[(*it).first] = Unit((*it).second.start_x, (*it).second.start_y);
+		if (state[SDL_SCANCODE_S] || state[SDL_SCANCODE_DOWN]) {
+			player.move(Direction::DOWN, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
 		}
-	}
+		if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]) {
+			player.move(Direction::RIGHT, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
+		}
+		if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) {
+			player.move(Direction::LEFT, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
+		}
+		if (state[SDL_SCANCODE_SPACE]) {
+			map.generate();
+		}
+		if (state[SDL_SCANCODE_U]) {
+			camera_y--;
+		}
+		if (state[SDL_SCANCODE_J]) {
+			camera_y++;
+		}
+		if (state[SDL_SCANCODE_K]) {
+			camera_x++;
+		}
+		if (state[SDL_SCANCODE_H]) {
+			camera_x--;
+		}
 
-	// Just center the camera around the player unit for now
-	camera_x = player.getX() - Engine::getScreenWidth() / 2;
-	camera_y = player.getY() - Engine::getScreenHeight() / 2;
+		// Update unit movements on each update as well
+		for (auto it = movements.begin(); it != movements.end(); ++it) {
+			int timestamp = SDL_GetTicks();
+			// If the unit exists, update its movement if necessary
+			if (units.find((*it).first) != units.end()) {
+				if ((*it).second.goal_x == (*it).second.start_x && (*it).second.goal_y == (*it).second.start_y) continue;
+				Unit& unit = units.at((*it).first);
+				int x = lerp((*it).second.start_x, (*it).second.goal_x, static_cast<float>(timestamp - (*it).second.timestamp) / SERVER_INTERVAL);
+				int y = lerp((*it).second.start_y, (*it).second.goal_y, static_cast<float>(timestamp - (*it).second.timestamp) / SERVER_INTERVAL);
+				unit.move(x, y);
+			}
+			// Otherwise, create the unit
+			else {
+				units[(*it).first] = Unit((*it).second.start_x, (*it).second.start_y);
+			}
+		}
+
+		// Just center the camera around the player unit for now
+		camera_x = player.getX() - Engine::getScreenWidth() / 2;
+		camera_y = player.getY() - Engine::getScreenHeight() / 2;
+	}
 
 }
 
@@ -224,11 +227,18 @@ void Game::serverPacketListener() {
 						int y = con_packet.vals[i + 2];
 						int timestamp = SDL_GetTicks();
 						if (movements.find(id) != movements.end()) {
-							// ASSUME UNITS[ID] ALREADY EXISTS
-							movements[id].start_x = units[id].getX();
-							movements[id].start_y = units[id].getY();
-							movements[id].goal_x = x;
-							movements[id].goal_y = y;
+							// If the unit is already in the right position, ignore the packet
+							if (x == movements[id].goal_x && y == movements[id].goal_y) {
+								movements[id].start_x = units[id].getX();
+								movements[id].start_y = units[id].getY();
+								movements[id].goal_x = units[id].getX();
+								movements[id].goal_y = units[id].getY();
+							} else {
+								movements[id].start_x = units[id].getX();
+								movements[id].start_y = units[id].getY();
+								movements[id].goal_x = x;
+								movements[id].goal_y = y;
+							}
 							movements[id].timestamp = timestamp;
 						} else {
 							UnitMovement temp = UnitMovement{ x, y, x, y, timestamp };

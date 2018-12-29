@@ -8,6 +8,7 @@
 #include "utils/utils.hpp"
 #include "profiler/profiler.hpp"
 #include "renderer/renderer.hpp"
+#include "textureManager/textureManager.hpp"
 #include "renderer/textRenderer.hpp"
 
 // Engine static variables
@@ -68,6 +69,7 @@ void Engine::init() {
 	// Initialize subsystems here
 	Profiler::init();
 	Renderer::init();
+	TextureManager::init();
 	TextRenderer::init();
 
 	// Initialize random seed
@@ -77,6 +79,7 @@ void Engine::init() {
 
 void Engine::shutdown() {
 	TextRenderer::shutdown();
+	TextureManager::shutdown();
 	Renderer::shutdown();
 	Profiler::shutdown();
 

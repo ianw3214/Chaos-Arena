@@ -1,6 +1,6 @@
 #include "renderer.hpp"
 
-#include "engine/shaderLoader.hpp"
+#include "engine/shaderLoader/shaderLoader.hpp"
 
 // Constants for rendering shapes
 const unsigned int LINE_INDICES[2] = { 0, 1 };
@@ -128,7 +128,6 @@ void Renderer::drawTexture(Vec2i v, int width, int height, const Texture & textu
 	VertexBufferLayout layout_tex;
 	layout_tex.pushFloat(2);
 	va.addBuffer(vb_tex, layout_tex, 1);
-	
 
 	// Bind the texture and draw
 	texture.bind();

@@ -4,6 +4,8 @@
 
 #include "engine/utils.hpp"
 
+class Sprite;
+
 #define RENDERER_DEFAULT_WIDTH		500
 #define RENDERER_DEFAULT_HEIGHT		500
 
@@ -23,6 +25,8 @@ public:
 	static void drawRectOutline(Vec2i v, int width, int height, Colour colour = { 1.f, 0.f, 0.f });
 	static void drawTexture(Vec2i v1, int width, int height, const Texture& texture);
 	
+private:
+
 	static void drawTriangles(const VertexArray& va, const IndexBuffer& ib, const Shader& shader);
 	static void drawLines(const VertexArray& va, const IndexBuffer& ib, const Shader& shader);
 	static void drawLineStrip(const VertexArray& va, const IndexBuffer& ib, const Shader& shader);

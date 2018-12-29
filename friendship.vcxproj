@@ -139,8 +139,9 @@
     <ClCompile Include="src\engine\opengl\vertexBuffer.cpp" />
     <ClCompile Include="src\engine\profiler\profiler.cpp" />
     <ClCompile Include="src\engine\renderer\renderer.cpp" />
-    <ClCompile Include="src\engine\shaderLoader.cpp" />
+    <ClCompile Include="src\engine\shaderLoader\shaderLoader.cpp" />
     <ClCompile Include="src\engine\renderer\textRenderer.cpp" />
+    <ClCompile Include="src\engine\textureManager\textureManager.cpp" />
     <ClCompile Include="src\game\game.cpp" />
     <ClCompile Include="src\game\map.cpp" />
     <ClCompile Include="src\game\unit.cpp" />
@@ -159,8 +160,9 @@
     <ClInclude Include="src\engine\opengl\vertexBufferLayout.hpp" />
     <ClInclude Include="src\engine\profiler\profiler.hpp" />
     <ClInclude Include="src\engine\renderer\renderer.hpp" />
-    <ClInclude Include="src\engine\shaderLoader.hpp" />
+    <ClInclude Include="src\engine\shaderLoader\shaderLoader.hpp" />
     <ClInclude Include="src\engine\renderer\textRenderer.hpp" />
+    <ClInclude Include="src\engine\textureManager\textureManager.hpp" />
     <ClInclude Include="src\engine\utils.hpp" />
     <ClInclude Include="src\game\game.hpp" />
     <ClInclude Include="src\game\gameUtils.hpp" />
