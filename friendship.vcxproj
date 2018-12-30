@@ -141,6 +141,7 @@
     <ClCompile Include="src\engine\renderer\renderer.cpp" />
     <ClCompile Include="src\engine\shaderLoader\shaderLoader.cpp" />
     <ClCompile Include="src\engine\renderer\textRenderer.cpp" />
+    <ClCompile Include="src\engine\sprite.cpp" />
     <ClCompile Include="src\engine\textureManager\textureManager.cpp" />
     <ClCompile Include="src\game\game.cpp" />
     <ClCompile Include="src\game\map.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="src\engine\renderer\renderer.hpp" />
     <ClInclude Include="src\engine\shaderLoader\shaderLoader.hpp" />
     <ClInclude Include="src\engine\renderer\textRenderer.hpp" />
+    <ClInclude Include="src\engine\sprite.hpp" />
     <ClInclude Include="src\engine\textureManager\textureManager.hpp" />
     <ClInclude Include="src\engine\utils.hpp" />
     <ClInclude Include="src\game\game.hpp" />

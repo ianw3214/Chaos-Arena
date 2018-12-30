@@ -63,6 +63,9 @@
     <ClCompile Include="src\engine\shaderLoader\shaderLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\engine\sprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\engine.hpp">
@@ -132,6 +135,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\engine\shaderLoader\shaderLoader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\sprite.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

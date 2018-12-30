@@ -9,3 +9,5 @@
 #include "textureManager/textureManager.hpp"
 #include "renderer/textRenderer.hpp"
 #include "shaderLoader/shaderLoader.hpp"
+
+#include "sprite.hpp"

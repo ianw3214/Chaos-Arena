@@ -1,6 +1,7 @@
 #include "renderer.hpp"
 
 #include "engine/shaderLoader/shaderLoader.hpp"
+#include "engine/sprite.hpp"
 
 // Constants for rendering shapes
 const unsigned int LINE_INDICES[2] = { 0, 1 };
@@ -131,6 +132,41 @@ void Renderer::drawTexture(Vec2i v, int width, int height, const Texture & textu
 
 	// Bind the texture and draw
 	texture.bind();
+	ShaderRef textureShader = ShaderLoader::getShader("texture");
+	drawTriangles(va, ib, *textureShader);
+}
+
+void Renderer::drawSprite(const Sprite & sprite) {
+	int positions[8] = {
+		sprite.x, sprite.y,
+		sprite.x + sprite.w, sprite.y,
+		sprite.x, sprite.y + sprite.h,
+		sprite.x + sprite.w, sprite.y + sprite.h
+	};
+	float textures[8] = {
+		static_cast<float>(sprite.src_x) / static_cast<float>(sprite.getOriginalWidth()),
+		static_cast<float>(sprite.src_y + sprite.src_h) / static_cast<float>(sprite.getOriginalHeight()),
+		static_cast<float>(sprite.src_x + sprite.src_w) / static_cast<float>(sprite.getOriginalWidth()),
+		static_cast<float>(sprite.src_y + sprite.src_h) / static_cast<float>(sprite.getOriginalHeight()),
+		static_cast<float>(sprite.src_x) / static_cast<float>(sprite.getOriginalWidth()),
+		static_cast<float>(sprite.src_y) / static_cast<float>(sprite.getOriginalHeight()),
+		static_cast<float>(sprite.src_x + sprite.src_w) / static_cast<float>(sprite.getOriginalWidth()),
+		static_cast<float>(sprite.src_y) / static_cast<float>(sprite.getOriginalHeight())
+	};
+	VertexArray		va;
+	VertexBuffer	vb_pos(positions, sizeof(int) * 8);
+	VertexBuffer	vb_tex(textures, sizeof(float) * 8);
+	IndexBuffer		ib(SQUARE_INDICES, 6);
+	// Specify the layout of the buffer data
+	VertexBufferLayout layout_pos;
+	layout_pos.pushInt(2);
+	va.addBuffer(vb_pos, layout_pos, 0);
+	VertexBufferLayout layout_tex;
+	layout_tex.pushFloat(2);
+	va.addBuffer(vb_tex, layout_tex, 1);
+
+	// Bind the texture and draw
+	sprite.getTexture().bind();
 	ShaderRef textureShader = ShaderLoader::getShader("texture");
 	drawTriangles(va, ib, *textureShader);
 }

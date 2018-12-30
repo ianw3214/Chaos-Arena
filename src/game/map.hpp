@@ -47,6 +47,9 @@ public:
 
 	void render(int cam_x = 0, int cam_y = 0) const;
 
+	// Setting the properties of the map
+	void setTileSheet(std::string name, int src_w, int src_h);
+
 	// Getter methods for map properties
 	int   getMapWidth() const;
 	int   getMapHeight() const;
@@ -76,8 +79,14 @@ private:
 	int				  map_width;
 	int				  map_height;
 	std::vector<int>  tilemap;
+
 	// Other map properties
 	Vec2i spawnPoint;
+
+	// Visual map properties
+	std::string tilesheet_name;
+	int tilesheet_src_w;
+	int tilesheet_src_h;
 
 	/* -----------------------------------------------------
 	 * ----------------MAP GENERATION CODE------------------

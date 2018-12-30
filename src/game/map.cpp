@@ -13,10 +13,14 @@ Vec2i getRandomPointInCircle(int radius) {
 	return Vec2i{ static_cast<int>(r * std::cos(t) * radius), static_cast<int>(r * std::sin(t) * radius) };
 }
 
-// Temporary code, TODO: (Ian) change this
-#define TILE_PATH "res/assets/tiles/tile.png"
 void Map::render(int cam_x, int cam_y) const {
+
 	Profiler::profileStart("map_render");
+
+	// Constructing the sprite is not TOO bad because texture manager handles the loading statically
+	Sprite tiles(tilesheet_name);
+	tiles.setSourceSize(tilesheet_src_w, tilesheet_src_h);
+	tiles.setSize(TILE_SIZE, TILE_SIZE);
 
 	for (int y = 0; y < map_height; ++y) {
 		for (int x = 0; x < map_width; ++x) {
@@ -26,13 +30,19 @@ void Map::render(int cam_x, int cam_y) const {
 			if ((y + 1) * TILE_SIZE - cam_y < 0) continue;
 			if ((y * TILE_SIZE - cam_y > Engine::getScreenHeight())) continue;
 			if (tilemap[y * map_width + x] == 1) {
-				// Renderer::drawRectOutline({ x * TILE_SIZE - cam_x, y * TILE_SIZE - cam_y }, TILE_SIZE, TILE_SIZE, { 1.f, 1.f, 1.f });
-				Renderer::drawTexture({ x * TILE_SIZE - cam_x, y * TILE_SIZE - cam_y }, TILE_SIZE, TILE_SIZE, *TextureManager::getTexture(TILE_PATH));
+				tiles.setPos(x * TILE_SIZE - cam_x, y * TILE_SIZE - cam_y);
+				tiles.render();
 			}
 		}
 	}
 
-	Profiler::profileEnd("map_render");
+	Profiler::profileEnd("map_render", true);
+}
+
+void Map::setTileSheet(std::string name, int src_w, int src_h) {
+	tilesheet_name = name;
+	tilesheet_src_w = src_w;
+	tilesheet_src_h = src_h;
 }
 
 int Map::getMapWidth() const {
@@ -151,7 +161,7 @@ void Map::generateTilemap() {
 		// Horizontal hallway
 		if (hall.v1.y == hall.v2.y) {
 			int left = hall.v1.x < hall.v2.x ? hall.v1.x : hall.v2.x;
-			for (int i = 0; i < std::abs(hall.v1.x - hall.v2.x); ++i) {
+			for (int i = 0; i < std::abs(hall.v1.x - hall.v2.x) + 1; ++i) {
 				tilemap[TILE_AT(left + i, hall.v1.y, map_width, min_x, min_y)] = 1;
 				// Assume adding the height is always ok because of how room sizes work
 				tilemap[TILE_AT(left + i, hall.v1.y - 1, map_width, min_x, min_y)] = 1;
@@ -161,7 +171,7 @@ void Map::generateTilemap() {
 		// Vertical hallway
 		if (hall.v1.x == hall.v2.x) {
 			int top = hall.v1.y < hall.v2.y ? hall.v1.y : hall.v2.y;
-			for (int i = 0; i < std::abs(hall.v1.y - hall.v2.y); ++i) {
+			for (int i = 0; i < std::abs(hall.v1.y - hall.v2.y) + 1; ++i) {
 				tilemap[TILE_AT(hall.v1.x, top + i, map_width, min_x, min_y)] = 1;
 				// Assume adding the width is always ok because of how room sizes work
 				tilemap[TILE_AT(hall.v1.x - 1, top + i, map_width, min_x, min_y)] = 1;

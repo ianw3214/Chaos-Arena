@@ -24,6 +24,8 @@ public:
 	static void drawRectOutline(Rect rect, Colour colour = { 1.f, 0.f, 0.f });
 	static void drawRectOutline(Vec2i v, int width, int height, Colour colour = { 1.f, 0.f, 0.f });
 	static void drawTexture(Vec2i v1, int width, int height, const Texture& texture);
+
+	static void drawSprite(const Sprite& sprite);
 	
 private:
 

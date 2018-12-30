@@ -26,6 +26,11 @@ bool			Game::connected;
 // TEMPORARY CODE
 Map map;
 
+// Temporary code, TODO: (Ian) Get rid of this
+#define TILE_PATH "res/assets/tiles/tile.png"
+#define TILE_SRC_W 64
+#define TILE_SRC_H 64
+
 void Game::init() {
 	ready = false;
 	running = true;
@@ -205,9 +210,12 @@ void Game::serverPacketListener() {
 				Socket::Packet1i con_packet = Socket::convertPacket1i(packet.data);
 				if (con_packet.val == PACKET_DUNGEON_READY) {
 					// Set a flag here to indicate ready
+					// TODO: (Ian) Move this to a function somewhere
 					map.generateTilemap();
 					Vec2i spawn_coords = map.tileToPixelCoords(map.getSpawnPoint());
 					player.move(spawn_coords.x, spawn_coords.y);
+					// TODO: (Ian) Set this based on a ID sent from the server or something
+					map.setTileSheet(TILE_PATH, TILE_SRC_W, TILE_SRC_H);
 					ready = true;
 				}
 			}
