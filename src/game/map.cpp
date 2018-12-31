@@ -36,7 +36,7 @@ void Map::render(int cam_x, int cam_y) const {
 		}
 	}
 
-	Profiler::profileEnd("map_render", true);
+	Profiler::profileEnd("map_render");
 }
 
 void Map::setTileSheet(std::string name, int src_w, int src_h) {

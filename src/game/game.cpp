@@ -10,18 +10,18 @@
 #include "game/map.hpp"
 
 // Static class variables
-bool			Game::ready;
-bool			Game::running;
-int				Game::camera_x;
-int				Game::camera_y;
-std::mutex		Game::player_mutex;
-Unit			Game::player;
+std::atomic_bool	Game::ready;
+bool				Game::running;
+int					Game::camera_x;
+int					Game::camera_y;
+std::mutex			Game::player_mutex;
+Player				Game::player;
 std::unordered_map<int, Unit>			Game::units;
 std::unordered_map<int, UnitMovement>	Game::movements;
 
-Socket::Socket	Game::socket;
-int				Game::client_id;
-bool			Game::connected;
+Socket::Socket		Game::socket;
+int					Game::client_id;
+bool				Game::connected;
 
 // TEMPORARY CODE
 Map map;
@@ -36,8 +36,8 @@ void Game::init() {
 	running = true;
 	camera_x = 0;
 	camera_y = 0;
-	player = Unit();
-
+	player.init();
+	
 	// Create a socket for both sending and listening
 	socket = Socket::create();
 	Socket::bind(socket);
@@ -54,8 +54,6 @@ void Game::init() {
 }
 
 void Game::shutdown() {
-	// Clean up resources
-
 	// Send a client disconnect and close the socket
 	Socket::Address dest(68, 183, 119, 157, Socket::DEFAULT_PORT);
 	Socket::Packet2i con_request = { PACKET_MSG_DISCONNECT, client_id };
@@ -71,31 +69,17 @@ inline T lerp(T v0, T v1, float t) {
 
 void Game::update(int delta) {
 
-	if (ready) {
-		SDL_Event e;
-		while (SDL_PollEvent(&e) > 0) {
-			if (e.type == SDL_KEYDOWN) {
-				if (e.key.keysym.sym == SDLK_ESCAPE) {
-					running = false;
-				}
+	SDL_Event e;
+	while (SDL_PollEvent(&e) > 0) {
+		if (e.type == SDL_KEYDOWN) {
+			if (e.key.keysym.sym == SDLK_ESCAPE) {
+				running = false;
 			}
 		}
-
 		std::lock_guard<std::mutex> lock(player_mutex);
 		// Handle keyboard state
 		const Uint8 * state = SDL_GetKeyboardState(NULL);
-		if (state[SDL_SCANCODE_W] || state[SDL_SCANCODE_UP]) {
-			player.move(Direction::UP, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
-		}
-		if (state[SDL_SCANCODE_S] || state[SDL_SCANCODE_DOWN]) {
-			player.move(Direction::DOWN, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
-		}
-		if (state[SDL_SCANCODE_D] || state[SDL_SCANCODE_RIGHT]) {
-			player.move(Direction::RIGHT, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
-		}
-		if (state[SDL_SCANCODE_A] || state[SDL_SCANCODE_LEFT]) {
-			player.move(Direction::LEFT, static_cast<int>(PLAYER_SPEED * UNIT_PER_TILE / delta), map);
-		}
+		player.handleEvent(e);
 		if (state[SDL_SCANCODE_SPACE]) {
 			map.generate();
 		}
@@ -111,7 +95,9 @@ void Game::update(int delta) {
 		if (state[SDL_SCANCODE_H]) {
 			camera_x--;
 		}
-
+	}
+	if (ready) {
+		player.update(delta, UNIT_PER_TILE, map);
 		// Update unit movements on each update as well
 		for (auto it = movements.begin(); it != movements.end(); ++it) {
 			int timestamp = SDL_GetTicks();
@@ -137,20 +123,26 @@ void Game::update(int delta) {
 }
 
 void Game::render() {
-	// Render the map
-	map.render(camera_x, camera_y);
-	// Render units in the map
-	for (const auto& unit_pair : units) {
-		if (unit_pair.first == client_id) continue;
-		const Unit& unit = unit_pair.second;
-		unit.render(camera_x, camera_y);
-	}
-	// Render the player
-	std::lock_guard<std::mutex> lock(player_mutex);
-	player.render(camera_x, camera_y);
+	if (ready) {
+		// Render the map
+		map.render(camera_x, camera_y);
+		// Render units in the map
+		for (const auto& unit_pair : units) {
+			if (unit_pair.first == client_id) continue;
+			const Unit& unit = unit_pair.second;
+			unit.render(camera_x, camera_y);
+		}
+		// Render the player
+		std::lock_guard<std::mutex> lock(player_mutex);
+		player.render(camera_x, camera_y);
 
-	// Debug renders
-	// map.render_debug();
+		// Debug renders
+		// map.render_debug();
+	} else {
+		// TODO: (Ian) Implement full loading screen
+		Renderer::drawTexture({ Engine::getScreenWidth() / 2 - 64, Engine::getScreenHeight() / 2 - 64 }, 128, 128, *TextureManager::getTexture("res/assets/loading.png"));
+	}
+
 }
 
 bool Game::isRunning() {
@@ -171,6 +163,7 @@ void Game::playerPosSender() {
 	int packet_last_tick;
 
 	while (!connected) std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	while (!ready) std::this_thread::sleep_for(std::chrono::microseconds(100));
 
 	packet_delta = packet_last_tick = SDL_GetTicks();
 	while (true) {
@@ -203,6 +196,7 @@ void Game::serverPacketListener() {
 		}
 	}
 
+	// TODO: (Ian) Set a timeout for not recieving anything from the server to resend
 	while (true) {
 		Socket::Packet<Socket::BasicPacket> packet = Socket::recieve<Socket::BasicPacket>(socket);
 		if (packet.has_data) {
@@ -212,8 +206,9 @@ void Game::serverPacketListener() {
 					// Set a flag here to indicate ready
 					// TODO: (Ian) Move this to a function somewhere
 					map.generateTilemap();
+					std::lock_guard<std::mutex> lock(player_mutex);
 					Vec2i spawn_coords = map.tileToPixelCoords(map.getSpawnPoint());
-					player.move(spawn_coords.x, spawn_coords.y);
+					player.init_positions(spawn_coords.x, spawn_coords.y);
 					// TODO: (Ian) Set this based on a ID sent from the server or something
 					map.setTileSheet(TILE_PATH, TILE_SRC_W, TILE_SRC_H);
 					ready = true;

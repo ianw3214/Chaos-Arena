@@ -1,23 +1,21 @@
 #include "sprite.hpp"
 
-#include "renderer/renderer.hpp"
-#include "textureManager/textureManager.hpp"
-#include "opengl/texture.hpp"
+#include "engine/renderer/renderer.hpp"
+#include "engine/textureManager/textureManager.hpp"
+#include "engine/opengl/texture.hpp"
 
 Sprite::Sprite(const std::string & name) {
-	m_name = name;
+	setSource(name);
 
 	src_x = 0;
 	src_y = 0;
-	original_w = src_w = TextureManager::getTexture(name)->getWidth();
-	original_h = src_h = TextureManager::getTexture(name)->getHeight();
 }
 
 Sprite::~Sprite() {
 	// There's nothing to free...
 }
 
-void Sprite::render() const {
+void Sprite::render() {
 	// Construct the target rect
 	if (m_name.size() > 0) {
 		Renderer::drawSprite(*this);
@@ -31,8 +29,16 @@ const Texture & Sprite::getTexture() const {
 	return *TextureManager::getTexture(m_name);
 }
 
+const std::string & Sprite::getName() const {
+	return m_name;
+}
+
 void Sprite::setSource(const std::string & name) {
 	m_name = name;
+
+	if (TextureManager::getTexture(name) == nullptr) return;
+	original_w = src_w = TextureManager::getTexture(name)->getWidth();
+	original_h = src_h = TextureManager::getTexture(name)->getHeight();
 }
 
 int Sprite::getOriginalWidth() const {

@@ -1,15 +1,16 @@
 #pragma once
 
 #include "unit.hpp"
+#include "player.hpp"
 
 #include "socket.hpp"
 
 #include <unordered_map>
 #include <mutex>
+#include <atomic>
 
 // TODO: (Ian) Figure out a better way of storing this
 #define UNIT_PER_TILE	64
-#define PLAYER_SPEED	8
 
 // Helper struct to sync player movement to the server
 #define SERVER_INTERVAL	500.f
@@ -40,7 +41,7 @@ public:
 
 private:
 
-	static bool ready;
+	static std::atomic_bool ready;
 	static bool running;
 
 	static int camera_x;
@@ -48,7 +49,7 @@ private:
 
 	// TODO: (Ian) include the mutex in the unit class
 	static std::mutex player_mutex;
-	static Unit player;
+	static Player player;
 	// TODO: (Ian) Perhaps use a map or something for faster lookup
 	// NOTE: Maybe a static array of size 100 works well w/ a bloom filter
 	static std::unordered_map<int, Unit> units;

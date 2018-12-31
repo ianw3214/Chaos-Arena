@@ -3,6 +3,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#include <iostream>
 Texture::Texture(const std::string & path)
 	: textureID(0), filePath(path), localBuffer(nullptr),
 	width(0), height(0), bitsPerPixel(0)

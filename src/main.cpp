@@ -19,9 +19,9 @@ int main(int argc, char* argv[]) {
 		ERR("Couldn't initialize sockets");
 		exit(1);
 	}
-
+	
 	Game::init();
-
+	
 	// Initialize delta and last_tick
 	delta = last_tick = SDL_GetTicks();
 

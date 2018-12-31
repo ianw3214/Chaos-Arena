@@ -11,10 +11,11 @@ public:
 	Sprite(const std::string& name = "");
 	~Sprite();
 
-	virtual void render() const;
+	virtual void render();
 
 	const Texture& getTexture() const;
-	void setSource(const std::string& name);
+	const std::string& getName() const;
+	virtual void setSource(const std::string& name);
 
 	int getOriginalWidth() const;
 	int getOriginalHeight() const;

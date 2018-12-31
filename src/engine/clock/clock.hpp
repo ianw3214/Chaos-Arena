@@ -10,6 +10,8 @@ public:
 
 	Uint32 getTicks();
 
+	void reset();
+
 	void pause();
 	void unpause();
 	bool isPaused() const;

@@ -141,10 +141,12 @@
     <ClCompile Include="src\engine\renderer\renderer.cpp" />
     <ClCompile Include="src\engine\shaderLoader\shaderLoader.cpp" />
     <ClCompile Include="src\engine\renderer\textRenderer.cpp" />
-    <ClCompile Include="src\engine\sprite.cpp" />
+    <ClCompile Include="src\engine\sprite\animatedSprite.cpp" />
+    <ClCompile Include="src\engine\sprite\sprite.cpp" />
     <ClCompile Include="src\engine\textureManager\textureManager.cpp" />
     <ClCompile Include="src\game\game.cpp" />
     <ClCompile Include="src\game\map.cpp" />
+    <ClCompile Include="src\game\player.cpp" />
     <ClCompile Include="src\game\unit.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
@@ -163,12 +165,14 @@
     <ClInclude Include="src\engine\renderer\renderer.hpp" />
     <ClInclude Include="src\engine\shaderLoader\shaderLoader.hpp" />
     <ClInclude Include="src\engine\renderer\textRenderer.hpp" />
-    <ClInclude Include="src\engine\sprite.hpp" />
+    <ClInclude Include="src\engine\sprite\animatedSprite.hpp" />
+    <ClInclude Include="src\engine\sprite\sprite.hpp" />
     <ClInclude Include="src\engine\textureManager\textureManager.hpp" />
     <ClInclude Include="src\engine\utils.hpp" />
     <ClInclude Include="src\game\game.hpp" />
     <ClInclude Include="src\game\gameUtils.hpp" />
     <ClInclude Include="src\game\map.hpp" />
+    <ClInclude Include="src\game\player.hpp" />
     <ClInclude Include="src\game\unit.hpp" />
     <ClInclude Include="src\utils\utils.hpp" />
     <ClInclude Include="src\vendor\delaunator.hpp" />

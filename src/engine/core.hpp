@@ -10,4 +10,5 @@
 #include "renderer/textRenderer.hpp"
 #include "shaderLoader/shaderLoader.hpp"
 
-#include "sprite.hpp"
+#include "sprite/sprite.hpp"
+#include "sprite/animatedSprite.hpp"

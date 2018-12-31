@@ -22,6 +22,11 @@ struct Vec3f {
 	float z;
 };
 
+struct Vec2ui {
+	unsigned int x;
+	unsigned int y;
+};
+
 struct Rect {
 	Vec2i pos;
 	int w;

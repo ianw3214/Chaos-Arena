@@ -1,12 +1,16 @@
 #include "unit.hpp"
 
 #include "engine/core.hpp"
+#include "utils/utils.hpp"
 
 #include "map.hpp"
 
 Unit::Unit(int x, int y) {
 	this->x = x;
 	this->y = y;
+	// Set a default sprite
+	setSprite();
+	sprite.setSize(PLAYER_WIDTH, PLAYER_HEIGHT);
 	return;
 }
 
@@ -14,8 +18,19 @@ Unit::~Unit() {
 	return;
 }
 
+void Unit::setSprite(const std::string & name, int frame_w, int frame_h) {
+	sprite.setSource(name);
+	sprite.setFrameSize(frame_w, frame_h);
+
+	// Hard coded animations
+	sprite.addAnimation(0, 0);
+	sprite.playAnimation(0);
+}
+
 void Unit::render(int cam_x, int cam_y) const {
-	Renderer::drawRectOutline(Vec2i{ x - PLAYER_WIDTH / 2 - cam_x, y - PLAYER_HEIGHT - cam_y}, PLAYER_WIDTH, PLAYER_HEIGHT);
+	// Renderer::drawRectOutline(Vec2i{ x - PLAYER_WIDTH / 2 - cam_x, y - PLAYER_HEIGHT - cam_y}, PLAYER_WIDTH, PLAYER_HEIGHT);
+	sprite.setPos(x - PLAYER_WIDTH / 2 - cam_x, y - PLAYER_HEIGHT - cam_y);
+	sprite.render();
 	return;
 }
 

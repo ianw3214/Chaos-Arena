@@ -63,7 +63,13 @@
     <ClCompile Include="src\engine\shaderLoader\shaderLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\sprite.cpp">
+    <ClCompile Include="src\engine\sprite\sprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\sprite\animatedSprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\game\player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -137,7 +143,13 @@
     <ClInclude Include="src\engine\shaderLoader\shaderLoader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\sprite.hpp">
+    <ClInclude Include="src\engine\sprite\sprite.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\engine\sprite\animatedSprite.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\game\player.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

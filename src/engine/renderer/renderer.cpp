@@ -1,7 +1,7 @@
 #include "renderer.hpp"
 
 #include "engine/shaderLoader/shaderLoader.hpp"
-#include "engine/sprite.hpp"
+#include "engine/sprite/sprite.hpp"
 
 // Constants for rendering shapes
 const unsigned int LINE_INDICES[2] = { 0, 1 };

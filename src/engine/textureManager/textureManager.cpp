@@ -22,6 +22,7 @@ Texture * TextureManager::getTexture(const std::string & name) {
 }
 
 void TextureManager::addTexture(const std::string & path, const std::string & name) {
+	if (name.size() == 0 && path.size() == 0) return;
 	if (name.size() > 0) {
 		s_textures[name] = new Texture(path);
 	} else {

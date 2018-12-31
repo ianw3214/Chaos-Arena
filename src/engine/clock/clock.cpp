@@ -15,6 +15,11 @@ Uint32 Clock::getTicks() {
 	return m_elapsedTime;
 }
 
+void Clock::reset() {
+	addCurrentElapsed();
+	m_elapsedTime = 0;
+}
+
 void Clock::pause() {
 	m_isPaused = true;
 	addCurrentElapsed();
