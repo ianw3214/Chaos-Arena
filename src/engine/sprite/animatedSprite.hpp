@@ -32,6 +32,8 @@ public:
 	void playAnimation(unsigned int animation, unsigned int loops = 1);
 	void queueAnimation(unsigned int animation, unsigned int loops = 1);
 
+	int getCurrentAnimation() const;
+
 	// Sprite sheet in size in terms of number of animation frames
 	int spriteSheetWidth;
 	int spriteSheetHeight;

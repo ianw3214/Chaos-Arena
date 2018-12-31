@@ -112,6 +112,8 @@ void Game::update(int delta) {
 			// Otherwise, create the unit
 			else {
 				units[(*it).first] = Unit((*it).second.start_x, (*it).second.start_y);
+				// Initialize any other unit properties
+				units[(*it).first].setSprite();
 			}
 		}
 

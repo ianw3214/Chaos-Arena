@@ -106,13 +106,13 @@ void AnimatedSprite::queueAnimation(unsigned int animation, unsigned int loops) 
 	animations.push(AnimationState{ animation, loops });
 }
 
+int AnimatedSprite::getCurrentAnimation() const {
+	return animation_index;
+}
+
 void AnimatedSprite::updateSourceFromFrame() {
 	int x = frame_index % spriteSheetWidth;
 	int y = frame_index / spriteSheetWidth;
-
-	// Dirty fix for inverted textures
-	// TODO: Fix this in engine renderer code
-	// y = spriteSheetHeight - y - 1;
 
 	setSourcePos(x * src_w, y * src_h);
 }

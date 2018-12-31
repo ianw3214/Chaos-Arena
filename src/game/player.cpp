@@ -18,7 +18,8 @@ Player::~Player() {
 void Player::init() {
 	if (unit) delete unit;
 	unit = new Unit();
-	unit->setSprite(DEFAULT_SPRITE, DEFAULT_FRAME_W, DEFAULT_FRAME_H);
+	unit->setSprite(PLAYER_SPRITE, PLAYER_FRAME_W, PLAYER_FRAME_H);
+	unit->playAnimation(UNIT_ANIM_IDLE_RIGHT);
 }
 
 void Player::init_positions(int spawn_x, int spawn_y) {
@@ -99,4 +100,6 @@ void Player::update(int delta, int units_per_tile, const Map & map) {
 	if (move_down)  unit->move(Direction::DOWN, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
 	if (move_right) unit->move(Direction::RIGHT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
 	if (move_left)  unit->move(Direction::LEFT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
+	// Set the player to an idle state if there is no movement
+	if (!move_up && !move_down && !move_right && !move_left) unit->spriteStopMove();
 }

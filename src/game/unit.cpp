@@ -8,9 +8,12 @@
 Unit::Unit(int x, int y) {
 	this->x = x;
 	this->y = y;
+	face_right = true;
+
 	// Set a default sprite
 	setSprite();
 	sprite.setSize(PLAYER_WIDTH, PLAYER_HEIGHT);
+
 	return;
 }
 
@@ -22,9 +25,26 @@ void Unit::setSprite(const std::string & name, int frame_w, int frame_h) {
 	sprite.setSource(name);
 	sprite.setFrameSize(frame_w, frame_h);
 
-	// Hard coded animations
-	sprite.addAnimation(0, 0);
-	sprite.playAnimation(0);
+	// Hard code animation data for now
+	// TODO: (Ian) load this in from a file
+	addAnimation(0, 9);
+	addAnimation(10, 19);
+	addAnimation(20, 29);
+	addAnimation(30, 39);
+}
+
+void Unit::addAnimation(unsigned int start, unsigned int end) {
+	sprite.addAnimation(start, end);
+}
+
+void Unit::playAnimation(unsigned int anim, bool restart, unsigned int loops) {
+	// Don't restart the animation if not specified
+	if (!restart && sprite.getCurrentAnimation() == anim) return;
+	sprite.playAnimation(anim, loops);
+}
+
+void Unit::queueAnimation(unsigned int anim, unsigned int loops) {
+	sprite.queueAnimation(anim, loops);
 }
 
 void Unit::render(int cam_x, int cam_y) const {
@@ -34,7 +54,18 @@ void Unit::render(int cam_x, int cam_y) const {
 	return;
 }
 
-void Unit::move(int x, int y) {
+void Unit::move(int x, int y, bool update_anim) {
+	// Update animations first
+	if (this->x < x) {
+		spriteMoveRight();
+	} else if (this->x > x) {
+		spriteMoveLeft();
+	} else if (this->y != y) {
+		// Sprite move up/down is the same logic
+		spriteMoveUp();
+	} else {
+		spriteStopMove();
+	}
 	this->x = x;
 	this->y = y;
 	return;
@@ -48,6 +79,13 @@ void Unit::move(Direction dir, int distance) {
 	case Direction::RIGHT:	{ x += distance; } break;
 		// Do nothing if se somehow get to default
 	default: {} break;
+	}
+	// Update animations as well
+	switch (dir) {
+	case Direction::UP:		{ spriteMoveUp(); } break;
+	case Direction::DOWN:	{ spriteMoveDown(); } break;
+	case Direction::RIGHT:	{ spriteMoveRight(); } break;
+	case Direction::LEFT:	{ spriteMoveLeft(); } break;
 	}
 	return;
 }
@@ -75,5 +113,52 @@ void Unit::move(Direction dir, int distance, const Map & map) {
 		default: {} break;
 		}
 	}
+	// Update animations as well
+	switch (dir) {
+	case Direction::UP: { spriteMoveUp(); } break;
+	case Direction::DOWN: { spriteMoveDown(); } break;
+	case Direction::RIGHT: { spriteMoveRight(); } break;
+	case Direction::LEFT: { spriteMoveLeft(); } break;
+	}
 	return;
+}
+
+void Unit::spriteMoveUp() {
+	// Play the run animation based on the direction the unit is facing
+	if (face_right) {
+		playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+	} else {
+		playAnimation(UNIT_ANIM_RUN_LEFT, false);
+	}
+}
+
+void Unit::spriteMoveDown() {
+	// Play the run animation based on the direction the unit is facing
+	if (face_right) {
+		playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+	} else {
+		playAnimation(UNIT_ANIM_RUN_LEFT, false);
+	}
+}
+
+void Unit::spriteMoveRight() {
+	// Make the sprite face right and play the right animation
+	face_right = true;
+	playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+}
+
+void Unit::spriteMoveLeft() {
+	// Make the sprite face left and play the right animation
+	face_right = false;
+	playAnimation(UNIT_ANIM_RUN_LEFT, false);
+}
+
+void Unit::spriteStopMove() {
+	// Play the idle animation based on the direction the unit is facing
+	// Play the run animation based on the direction the unit is facing
+	if (face_right) {
+		playAnimation(UNIT_ANIM_IDLE_RIGHT, false);
+	} else {
+		playAnimation(UNIT_ANIM_IDLE_LEFT, false);
+	}
 }

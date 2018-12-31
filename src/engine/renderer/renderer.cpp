@@ -143,15 +143,16 @@ void Renderer::drawSprite(const Sprite & sprite) {
 		sprite.x, sprite.y + sprite.h,
 		sprite.x + sprite.w, sprite.y + sprite.h
 	};
+	// NOTE: (Ian) This could potentially be moved to shader code
 	float textures[8] = {
 		static_cast<float>(sprite.src_x) / static_cast<float>(sprite.getOriginalWidth()),
-		static_cast<float>(sprite.src_y + sprite.src_h) / static_cast<float>(sprite.getOriginalHeight()),
+		static_cast<float>(sprite.getOriginalHeight() - sprite.src_y - sprite.src_h) / static_cast<float>(sprite.getOriginalHeight()),
 		static_cast<float>(sprite.src_x + sprite.src_w) / static_cast<float>(sprite.getOriginalWidth()),
-		static_cast<float>(sprite.src_y + sprite.src_h) / static_cast<float>(sprite.getOriginalHeight()),
+		static_cast<float>(sprite.getOriginalHeight() - sprite.src_y - sprite.src_h) / static_cast<float>(sprite.getOriginalHeight()),
 		static_cast<float>(sprite.src_x) / static_cast<float>(sprite.getOriginalWidth()),
-		static_cast<float>(sprite.src_y) / static_cast<float>(sprite.getOriginalHeight()),
+		static_cast<float>(sprite.getOriginalHeight() - sprite.src_y) / static_cast<float>(sprite.getOriginalHeight()),
 		static_cast<float>(sprite.src_x + sprite.src_w) / static_cast<float>(sprite.getOriginalWidth()),
-		static_cast<float>(sprite.src_y) / static_cast<float>(sprite.getOriginalHeight())
+		static_cast<float>(sprite.getOriginalHeight() - sprite.src_y) / static_cast<float>(sprite.getOriginalHeight())
 	};
 	VertexArray		va;
 	VertexBuffer	vb_pos(positions, sizeof(int) * 8);

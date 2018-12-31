@@ -9,9 +9,9 @@ class Map;
 // TODO: (Ian) Figure out a better way of storing this
 #define PLAYER_SPEED		8.f
 
-#define DEFAULT_SPRITE	"res/assets/units/player.png"
-#define DEFAULT_FRAME_W	64
-#define DEFAULT_FRAME_H	128
+#define PLAYER_SPRITE	"res/assets/units/player.png"
+#define PLAYER_FRAME_W	64
+#define PLAYER_FRAME_H	128
 
 class Player {
 
