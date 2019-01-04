@@ -15,13 +15,14 @@ int main(int argc, char* argv[]) {
 
 	// TODO: (Ian) More error checking
 	Engine::init();
+	Engine::resize(1280, 720);
 	if (!Socket::init()) {
 		ERR("Couldn't initialize sockets");
 		exit(1);
 	}
 	
 	Game::init();
-	
+
 	// Initialize delta and last_tick
 	delta = last_tick = SDL_GetTicks();
 

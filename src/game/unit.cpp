@@ -5,16 +5,17 @@
 
 #include "map.hpp"
 
-Unit::Unit(int x, int y) {
+Unit::Unit(int x, int y, float scale) {
 	this->x = x;
 	this->y = y;
+	setScreenScale(scale);
+	calculateScreenPos();
 	face_right = true;
 	attacking = false;
 
 	// Set a default sprite
 	setSprite();
-	sprite.setSize(PLAYER_WIDTH, PLAYER_HEIGHT);
-
+	
 	return;
 }
 
@@ -51,8 +52,10 @@ void Unit::queueAnimation(unsigned int anim, unsigned int loops) {
 }
 
 void Unit::render(int cam_x, int cam_y) const {
-	// Renderer::drawRectOutline(Vec2i{ x - PLAYER_WIDTH / 2 - cam_x, y - PLAYER_HEIGHT - cam_y}, PLAYER_WIDTH, PLAYER_HEIGHT);
-	sprite.setPos(x - PLAYER_WIDTH / 2 - cam_x, y - PLAYER_HEIGHT - cam_y);
+	// TODO: (Ian) Not hard code these maybe
+	int x = screen_x - static_cast<int>(screen_scale * PLAYER_WIDTH) / 2 - cam_x;
+	int y = screen_y - static_cast<int>(screen_scale * PLAYER_HEIGHT) - cam_y;
+	sprite.setPos(x, y);
 	sprite.render();
 	return;
 }
@@ -71,6 +74,7 @@ void Unit::move(int x, int y, bool update_anim) {
 	}
 	this->x = x;
 	this->y = y;
+	calculateScreenPos();
 	return;
 }
 
@@ -90,6 +94,7 @@ void Unit::move(Direction dir, int distance) {
 	case Direction::RIGHT:	{ spriteMoveRight(); } break;
 	case Direction::LEFT:	{ spriteMoveLeft(); } break;
 	}
+	calculateScreenPos();
 	return;
 }
 
@@ -123,6 +128,7 @@ void Unit::move(Direction dir, int distance, const Map & map) {
 	case Direction::RIGHT: { spriteMoveRight(); } break;
 	case Direction::LEFT: { spriteMoveLeft(); } break;
 	}
+	calculateScreenPos();
 	return;
 }
 
@@ -208,4 +214,14 @@ void Unit::spriteStopMove() {
 			playAnimation(UNIT_ANIM_IDLE_LEFT, false);
 		}
 	}
+}
+
+void Unit::setScreenScale(float scale) {
+	screen_scale = scale;
+	sprite.setSize(static_cast<int>(scale * PLAYER_WIDTH), static_cast<int>(scale * PLAYER_HEIGHT));
+}
+
+void Unit::calculateScreenPos() {
+	screen_x = static_cast<int>(screen_scale * x);
+	screen_y = static_cast<int>(screen_scale * y);
 }

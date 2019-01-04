@@ -18,6 +18,7 @@ std::atomic_bool	Game::ready;
 bool				Game::running;
 int					Game::camera_x;
 int					Game::camera_y;
+float				Game::screen_scale;
 std::mutex			Game::player_mutex;
 Player				Game::player;
 std::unordered_map<int, Unit>			Game::units;
@@ -57,6 +58,8 @@ void Game::init() {
 	t_serverPacketReciever = std::thread(Game::serverPacketListener);
 
 	map.clearMapData();
+
+	setScreenScale(2.f);
 }
 
 void Game::shutdown() {
@@ -89,18 +92,6 @@ void Game::update(int delta) {
 		if (state[SDL_SCANCODE_SPACE]) {
 			map.generate();
 		}
-		if (state[SDL_SCANCODE_U]) {
-			camera_y--;
-		}
-		if (state[SDL_SCANCODE_J]) {
-			camera_y++;
-		}
-		if (state[SDL_SCANCODE_K]) {
-			camera_x++;
-		}
-		if (state[SDL_SCANCODE_H]) {
-			camera_x--;
-		}
 	}
 	if (ready) {
 		player.update(delta, UNIT_PER_TILE, map);
@@ -123,15 +114,15 @@ void Game::update(int delta) {
 			}
 			// Otherwise, create the unit
 			else {
-				units[(*it).first] = Unit((*it).second.start_x, (*it).second.start_y);
+				units[(*it).first] = Unit((*it).second.start_x, (*it).second.start_y, screen_scale);
 				// Initialize any other unit properties
 				units[(*it).first].setSprite();
 			}
 		}
 
 		// Just center the camera around the player unit for now
-		camera_x = player.getX() - Engine::getScreenWidth() / 2;
-		camera_y = player.getY() - Engine::getScreenHeight() / 2;
+		camera_x = player.getScreenX() - Engine::getScreenWidth() / 2;
+		camera_y = player.getScreenY() - Engine::getScreenHeight() / 2;
 		// Send any packets that the player has
 		while (player.hasPacket()) {
 			addPacket(player.getNextPacket());
@@ -154,7 +145,7 @@ void Game::update(int delta) {
 void Game::render() {
 	if (ready) {
 		// Render the map
-		map.render(camera_x, camera_y);
+		map.render(camera_x, camera_y, screen_scale);
 		// Render units in the map
 		for (const auto& unit_pair : units) {
 			if (unit_pair.first == client_id) continue;
@@ -178,6 +169,14 @@ void Game::render() {
 
 bool Game::isRunning() {
 	return running;
+}
+
+void Game::setScreenScale(float scale) {
+	screen_scale = scale;
+	for (auto& unit : units) {
+		unit.second.setScreenScale(scale);
+	}
+	player.setScreenScale(scale);
 }
 
 // Simple thread to send any packets in the queue

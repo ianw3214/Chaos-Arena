@@ -27,12 +27,12 @@ void Renderer::shutdown() {
 
 void Renderer::setScreenSize(int width, int height) {
 	ShaderRef basicShader = ShaderLoader::getShader("basic");
-	basicShader->setUniform1i("u_screen_width", 500);
-	basicShader->setUniform1i("u_screen_height", 500);
+	basicShader->setUniform1i("u_screen_width", width);
+	basicShader->setUniform1i("u_screen_height", height);
 	
 	ShaderRef textureShader = ShaderLoader::getShader("texture");
-	textureShader->setUniform1i("u_screen_width", 500);
-	textureShader->setUniform1i("u_screen_height", 500);
+	textureShader->setUniform1i("u_screen_width", width);
+	textureShader->setUniform1i("u_screen_height", height);
 }
 
 void Renderer::clear(Colour colour, float alpha) {

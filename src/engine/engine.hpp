@@ -14,7 +14,9 @@ public:
 	static int getScreenWidth();
 	static int getScreenHeight();
 	static void swapScreenBuffer();
-	
+
+	static void resize(int width, int height);
+
 private:
 
 	static SDL_Window * m_window;

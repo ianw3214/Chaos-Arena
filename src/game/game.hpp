@@ -35,6 +35,7 @@ public:
 	static void render();
 
 	static bool isRunning();
+	static void setScreenScale(float scale);
 
 	// Multithreaded code
 	// TODO: (Ian) Figure out how to stop these threads once the game exits
@@ -51,6 +52,7 @@ private:
 
 	static int camera_x;
 	static int camera_y;
+	static float screen_scale;
 
 	// TODO: (Ian) include the mutex in the unit class
 	static std::mutex player_mutex;

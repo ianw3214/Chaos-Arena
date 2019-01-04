@@ -13,24 +13,27 @@ Vec2i getRandomPointInCircle(int radius) {
 	return Vec2i{ static_cast<int>(r * std::cos(t) * radius), static_cast<int>(r * std::sin(t) * radius) };
 }
 
-void Map::render(int cam_x, int cam_y) const {
+void Map::render(int cam_x, int cam_y, float scale) const {
 
 	Profiler::profileStart("map_render");
+
+	// TODO: (Ian) DON'T hard code the tile size
+	int tile_size = static_cast<int>(scale * TILE_SIZE);
 
 	// Constructing the sprite is not TOO bad because texture manager handles the loading statically
 	Sprite tiles(tilesheet_name);
 	tiles.setSourceSize(tilesheet_src_w, tilesheet_src_h);
-	tiles.setSize(TILE_SIZE, TILE_SIZE);
-
+	tiles.setSize(tile_size, tile_size);
+	
 	for (int y = 0; y < map_height; ++y) {
 		for (int x = 0; x < map_width; ++x) {
 			// Slip the tile if it is out of the screen
-			if ((x + 1) * TILE_SIZE - cam_x < 0) continue;
-			if ((x * TILE_SIZE - cam_x > Engine::getScreenWidth())) continue;
-			if ((y + 1) * TILE_SIZE - cam_y < 0) continue;
-			if ((y * TILE_SIZE - cam_y > Engine::getScreenHeight())) continue;
+			if ((x + 1) * tile_size - cam_x < 0) continue;
+			if ((x * tile_size - cam_x > Engine::getScreenWidth())) continue;
+			if ((y + 1) * tile_size - cam_y < 0) continue;
+			if ((y * tile_size - cam_y > Engine::getScreenHeight())) continue;
 			if (tilemap[y * map_width + x] == 1) {
-				tiles.setPos(x * TILE_SIZE - cam_x, y * TILE_SIZE - cam_y);
+				tiles.setPos(x * tile_size - cam_x, y * tile_size - cam_y);
 				tiles.render();
 			}
 		}

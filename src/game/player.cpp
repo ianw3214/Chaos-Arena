@@ -6,6 +6,7 @@
 #include "socket.hpp"
 
 Player::Player(int x, int y) : health(DEFAULT_PLAYER_HEALTH) {
+	screen_scale = 1.f;
 	// Initialize key flags
 	move_up = false;
 	move_down = false;
@@ -19,7 +20,7 @@ Player::~Player() {
 
 void Player::init() {
 	if (unit) delete unit;
-	unit = new Unit();
+	unit = new Unit(0, 0, screen_scale);
 	unit->setSprite(PLAYER_SPRITE, PLAYER_FRAME_W, PLAYER_FRAME_H);
 	unit->playAnimation(UNIT_ANIM_IDLE_RIGHT);
 }
@@ -45,6 +46,14 @@ int Player::getX() const {
 
 int Player::getY() const {
 	return unit->getY();
+}
+
+int Player::getScreenX() const {
+	return unit->getScreenX();
+}
+
+int Player::getScreenY() const {
+	return unit->getScreenY();
 }
 
 void Player::render(int cam_x, int cam_y) {
@@ -142,6 +151,11 @@ void Player::attack_primary() {
 	packet.vals.push_back(unit->getX());
 	packet.vals.push_back(unit->getY());
 	addPacket(Socket::createBasicPacket(packet));
+}
+
+void Player::setScreenScale(float scale) {
+	screen_scale = scale;
+	if (unit) unit->setScreenScale(scale);
 }
 
 void Player::addPacket(Socket::BasicPacket packet) {

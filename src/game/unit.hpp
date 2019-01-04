@@ -29,7 +29,7 @@ class Unit {
 
 public:
 
-	Unit(int x=0, int y=0);
+	Unit(int x=0, int y=0, float screen_scale = 1.f);
 	~Unit();
 
 	// Sprite/animation functions
@@ -52,6 +52,8 @@ public:
 	// Getter methods
 	int getX() const { return x; }
 	int getY() const { return y; }
+	int getScreenX() const { return screen_x; }
+	int getScreenY() const { return screen_y; }
 	Vec2i getPos() const { return Vec2i{ x, y }; }
 	bool isFaceRight() const { return face_right; }
 
@@ -61,12 +63,18 @@ public:
 	void spriteMoveRight();
 	void spriteMoveLeft();
 	void spriteStopMove();
+	void setScreenScale(float scale);
+	void calculateScreenPos();
 
 protected:
 
 	// TODO: (Ian) Separate between raw x/y and screen x/y
 	int x;
 	int y;
+
+	int screen_x;
+	int screen_y;
+	float screen_scale;
 
 	bool face_right;
 	bool attacking;

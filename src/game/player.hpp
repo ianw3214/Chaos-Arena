@@ -35,9 +35,12 @@ public:
 	bool hasPacket() const;
 	Socket::BasicPacket getNextPacket();
 
-	// Player getter methods
+	// Unit interactions
 	int getX() const;
 	int getY() const;
+	int getScreenX() const;
+	int getScreenY() const;
+	void setScreenScale(float scale);
 
 	// Basic player methods
 	void render(int cam_x = 0, int cam_y = 0);
@@ -51,6 +54,7 @@ public:
 private:
 
 	int player_id;
+	float screen_scale;
 
 	// The player class acts as a controller for a unit
 	Unit * unit;

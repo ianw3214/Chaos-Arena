@@ -97,6 +97,7 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                     int u_y = unit.m_y - 100;
                     if (x < u_x + 60 && x + w > u_x && y < u_y + 100 && y + h > u_y) {
                         collisions.push_back(unit.m_id);
+                        
                     }
                 }
                 // Then, send all updates to the players

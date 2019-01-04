@@ -97,3 +97,11 @@ int Engine::getScreenHeight() {
 void Engine::swapScreenBuffer() {
 	SDL_GL_SwapWindow(m_window);
 }
+
+void Engine::resize(int width, int height) {
+	SDL_SetWindowSize(m_window, width, height);
+	glViewport(0, 0, width, height);
+	m_screenWidth	= width;
+	m_screenHeight	= height;
+	Renderer::setScreenSize(width, height);
+}

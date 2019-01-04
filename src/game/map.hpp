@@ -45,7 +45,7 @@ class Map {
 
 public:
 
-	void render(int cam_x = 0, int cam_y = 0) const;
+	void render(int cam_x = 0, int cam_y = 0, float scale = 1.f) const;
 
 	// Setting the properties of the map
 	void setTileSheet(std::string name, int src_w, int src_h);
