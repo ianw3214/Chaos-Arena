@@ -3,8 +3,10 @@
 #include "map.hpp"
 
 #include "utils/utils.hpp"
+#include "socket.hpp"
 
-Player::Player(int x, int y) {
+Player::Player(int x, int y) : health(DEFAULT_PLAYER_HEALTH) {
+	// Initialize key flags
 	move_up = false;
 	move_down = false;
 	move_right = false;
@@ -22,12 +24,19 @@ void Player::init() {
 	unit->playAnimation(UNIT_ANIM_IDLE_RIGHT);
 }
 
-void Player::init_positions(int spawn_x, int spawn_y) {
+void Player::init_properties(int id, int spawn_x, int spawn_y) {
+	player_id = id;
 	unit->move(spawn_x, spawn_y);
 }
 
-void Player::render(int cam_x, int cam_y) {
-	unit->render(cam_x, cam_y);
+bool Player::hasPacket() const {
+	return !packet_queue.empty();
+}
+
+Socket::BasicPacket Player::getNextPacket() {
+	Socket::BasicPacket temp = packet_queue.front();
+	packet_queue.pop();
+	return temp;
 }
 
 int Player::getX() const {
@@ -36,6 +45,10 @@ int Player::getX() const {
 
 int Player::getY() const {
 	return unit->getY();
+}
+
+void Player::render(int cam_x, int cam_y) {
+	unit->render(cam_x, cam_y);
 }
 
 void Player::handleEvent(SDL_Event & e) {
@@ -61,6 +74,9 @@ void Player::handleEvent(SDL_Event & e) {
 		{
 			move_left = true;
 		} break;
+		case SDLK_z: {
+			attack_primary();
+		}
 		default: {
 			// Do nothing...
 		} break;
@@ -102,4 +118,32 @@ void Player::update(int delta, int units_per_tile, const Map & map) {
 	if (move_left)  unit->move(Direction::LEFT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
 	// Set the player to an idle state if there is no movement
 	if (!move_up && !move_down && !move_right && !move_left) unit->spriteStopMove();
+}
+
+// Render UI related to the player
+void Player::renderUI() {
+	// Render the player health
+	int y = Engine::getScreenHeight() - HEART_HEIGHT;
+	for (int i = 0; i < health; ++i) {
+		int x = i * HEART_WIDTH;
+		Renderer::drawTexture({ x, y }, HEART_WIDTH, HEART_HEIGHT, HEALTH_SPRITE);
+	}
+}
+
+void Player::attack_primary() {
+	// Play the animation
+	unit->attack_primary();
+	// Send a packet to the server
+	Socket::Packetvi packet;
+	packet.vals.push_back(PACKET_PLAYER_ATTACK);
+	packet.vals.push_back(player_id);
+	packet.vals.push_back(ATTACK_BASIC_PUNCH);
+	packet.vals.push_back(unit->isFaceRight() ? FACE_RIGHT : FACE_LEFT);
+	packet.vals.push_back(unit->getX());
+	packet.vals.push_back(unit->getY());
+	addPacket(Socket::createBasicPacket(packet));
+}
+
+void Player::addPacket(Socket::BasicPacket packet) {
+	packet_queue.push(packet);
 }

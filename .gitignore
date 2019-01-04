@@ -11,3 +11,6 @@ libs/
 # IDE folders
 .vs/
 .vscode/
+
+# Temporary art files
+*.aseprite

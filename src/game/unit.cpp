@@ -9,6 +9,7 @@ Unit::Unit(int x, int y) {
 	this->x = x;
 	this->y = y;
 	face_right = true;
+	attacking = false;
 
 	// Set a default sprite
 	setSprite();
@@ -31,6 +32,8 @@ void Unit::setSprite(const std::string & name, int frame_w, int frame_h) {
 	addAnimation(10, 19);
 	addAnimation(20, 29);
 	addAnimation(30, 39);
+	addAnimation(40, 49);
+	addAnimation(50, 59);
 }
 
 void Unit::addAnimation(unsigned int start, unsigned int end) {
@@ -123,42 +126,86 @@ void Unit::move(Direction dir, int distance, const Map & map) {
 	return;
 }
 
-void Unit::spriteMoveUp() {
-	// Play the run animation based on the direction the unit is facing
+void Unit::attack_primary() {
+	// Play the attack animation
 	if (face_right) {
-		playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+		playAnimation(UNIT_ANIM_PUNCH_RIGHT);
+		queueAnimation(UNIT_ANIM_IDLE_RIGHT);
 	} else {
-		playAnimation(UNIT_ANIM_RUN_LEFT, false);
+		playAnimation(UNIT_ANIM_PUNCH_LEFT);
+		queueAnimation(UNIT_ANIM_IDLE_LEFT);
+	}
+	// Set the animation timer
+	attacking = true;
+	attack_timer.reset();
+}
+
+void Unit::spriteMoveUp() {
+	if (attacking) {
+		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+			attacking = false;
+		}
+	} else {
+		// Play the run animation based on the direction the unit is facing
+		if (face_right) {
+			playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+		} else {
+			playAnimation(UNIT_ANIM_RUN_LEFT, false);
+		}
 	}
 }
 
 void Unit::spriteMoveDown() {
-	// Play the run animation based on the direction the unit is facing
-	if (face_right) {
-		playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+	if (attacking) {
+		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+			attacking = false;
+		}
 	} else {
-		playAnimation(UNIT_ANIM_RUN_LEFT, false);
+		// Play the run animation based on the direction the unit is facing
+		if (face_right) {
+			playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+		} else {
+			playAnimation(UNIT_ANIM_RUN_LEFT, false);
+		}
 	}
 }
 
 void Unit::spriteMoveRight() {
-	// Make the sprite face right and play the right animation
-	face_right = true;
-	playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+	if (attacking) {
+		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+			attacking = false;
+		}
+	} else {
+		// Make the sprite face right and play the right animation
+		face_right = true;
+		playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+	}
 }
 
 void Unit::spriteMoveLeft() {
-	// Make the sprite face left and play the right animation
-	face_right = false;
-	playAnimation(UNIT_ANIM_RUN_LEFT, false);
+	if (attacking) {
+		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+			attacking = false;
+		}
+	} else {
+		// Make the sprite face left and play the right animation
+		face_right = false;
+		playAnimation(UNIT_ANIM_RUN_LEFT, false);
+	}
 }
 
 void Unit::spriteStopMove() {
-	// Play the idle animation based on the direction the unit is facing
-	// Play the run animation based on the direction the unit is facing
-	if (face_right) {
-		playAnimation(UNIT_ANIM_IDLE_RIGHT, false);
+	if (attacking) {
+		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+			attacking = false;
+		}
 	} else {
-		playAnimation(UNIT_ANIM_IDLE_LEFT, false);
+		// Play the idle animation based on the direction the unit is facing
+		// Play the run animation based on the direction the unit is facing
+		if (face_right) {
+			playAnimation(UNIT_ANIM_IDLE_RIGHT, false);
+		} else {
+			playAnimation(UNIT_ANIM_IDLE_LEFT, false);
+		}
 	}
 }

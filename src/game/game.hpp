@@ -8,12 +8,15 @@
 #include <unordered_map>
 #include <mutex>
 #include <atomic>
+#include <queue>
 
 // TODO: (Ian) Figure out a better way of storing this
 #define UNIT_PER_TILE	64
 
+#define PACKETS_PER_SEC	15
+
 // Helper struct to sync player movement to the server
-#define SERVER_INTERVAL	500.f
+#define SERVER_INTERVAL	100.f
 struct UnitMovement {
 	int start_x, start_y;
 	int goal_x, goal_y;
@@ -36,8 +39,10 @@ public:
 	// Multithreaded code
 	// TODO: (Ian) Figure out how to stop these threads once the game exits
 	// TODO: (Ian) Queue structure to send data in a centralized location
-	static void playerPosSender();
+	static void packetSender();
 	static void serverPacketListener();
+	static std::thread t_serverPacketSender;
+	static std::thread t_serverPacketReciever;
 
 private:
 
@@ -61,5 +66,13 @@ private:
 	static int client_id;
 	// TODO: (Ian) Find a better solution instead of busy waiting
 	static bool connected;
+	static std::mutex packet_queue_mutex;
+	static std::queue<Socket::BasicPacket> packet_queue;
+	static int packet_delta;
+	static int packet_last_tick;
+
+	static bool hasPacket();
+	static void addPacket(const Socket::BasicPacket packet);
+	static Socket::BasicPacket getPacket();
 
 };

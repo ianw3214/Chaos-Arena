@@ -2,6 +2,7 @@
 
 #include "engine/shaderLoader/shaderLoader.hpp"
 #include "engine/sprite/sprite.hpp"
+#include "engine/textureManager/textureManager.hpp"
 
 // Constants for rendering shapes
 const unsigned int LINE_INDICES[2] = { 0, 1 };
@@ -136,6 +137,10 @@ void Renderer::drawTexture(Vec2i v, int width, int height, const Texture & textu
 	drawTriangles(va, ib, *textureShader);
 }
 
+void Renderer::drawTexture(Vec2i v1, int width, int height, const std::string & name) {
+	drawTexture(v1, width, height, *TextureManager::getTexture(name));
+}
+
 void Renderer::drawSprite(const Sprite & sprite) {
 	int positions[8] = {
 		sprite.x, sprite.y,
@@ -146,13 +151,13 @@ void Renderer::drawSprite(const Sprite & sprite) {
 	// NOTE: (Ian) This could potentially be moved to shader code
 	float textures[8] = {
 		static_cast<float>(sprite.src_x) / static_cast<float>(sprite.getOriginalWidth()),
-		static_cast<float>(sprite.getOriginalHeight() - sprite.src_y - sprite.src_h) / static_cast<float>(sprite.getOriginalHeight()),
-		static_cast<float>(sprite.src_x + sprite.src_w) / static_cast<float>(sprite.getOriginalWidth()),
-		static_cast<float>(sprite.getOriginalHeight() - sprite.src_y - sprite.src_h) / static_cast<float>(sprite.getOriginalHeight()),
-		static_cast<float>(sprite.src_x) / static_cast<float>(sprite.getOriginalWidth()),
 		static_cast<float>(sprite.getOriginalHeight() - sprite.src_y) / static_cast<float>(sprite.getOriginalHeight()),
 		static_cast<float>(sprite.src_x + sprite.src_w) / static_cast<float>(sprite.getOriginalWidth()),
-		static_cast<float>(sprite.getOriginalHeight() - sprite.src_y) / static_cast<float>(sprite.getOriginalHeight())
+		static_cast<float>(sprite.getOriginalHeight() - sprite.src_y) / static_cast<float>(sprite.getOriginalHeight()),
+		static_cast<float>(sprite.src_x) / static_cast<float>(sprite.getOriginalWidth()),
+		static_cast<float>(sprite.getOriginalHeight() - sprite.src_y - sprite.src_h) / static_cast<float>(sprite.getOriginalHeight()),
+		static_cast<float>(sprite.src_x + sprite.src_w) / static_cast<float>(sprite.getOriginalWidth()),
+		static_cast<float>(sprite.getOriginalHeight() - sprite.src_y - sprite.src_h) / static_cast<float>(sprite.getOriginalHeight())
 	};
 	VertexArray		va;
 	VertexBuffer	vb_pos(positions, sizeof(int) * 8);

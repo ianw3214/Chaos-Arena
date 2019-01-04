@@ -98,7 +98,7 @@ void AnimatedSprite::playAnimation(unsigned int animation, unsigned int loops) {
 
 	// Actually play the animation by setting it to the right frame
 	animation_index = animation;
-	frame_index = frames[animation_index].y;
+	frame_index = frames[animation_index].x;
 	updateSourceFromFrame();
 }
 

@@ -14,6 +14,8 @@
 #define LOG(x) std::cout << "[LOG]: " << x << std::endl;
 #define ERR(x) std::cerr << "[ERR]: " << x << std::endl;
 
+#define PLAYER_POS_SEND_FREQUENCY   100
+
 // Constant variables
 const std::string connect_message = std::string("connect");
 
@@ -51,6 +53,7 @@ private:
     // NOTE: Using an unordered map may have better performance because we need lookup
     std::list<ClientUnit> clients;
 
+    // Game state variables
     Map map;
 
     const Socket::Socket& socket;

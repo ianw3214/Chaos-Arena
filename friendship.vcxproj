@@ -149,6 +149,7 @@
     <ClCompile Include="src\game\player.cpp" />
     <ClCompile Include="src\game\unit.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\menu\menu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\engine\clock\clock.hpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="src\game\map.hpp" />
     <ClInclude Include="src\game\player.hpp" />
     <ClInclude Include="src\game\unit.hpp" />
+    <ClInclude Include="src\menu\menu.hpp" />
     <ClInclude Include="src\utils\utils.hpp" />
     <ClInclude Include="src\vendor\delaunator.hpp" />
     <ClInclude Include="src\vendor\stb_image.h" />

@@ -19,6 +19,12 @@ typedef char PacketType;
 #define PACKET_DUNGEON_READY    5
 
 #define PACKET_PLAYER_POS       6
+#define PACKET_PLAYER_ATTACK    7
+
+// The defines for the attacks are in a separate file
+#include "attacks.hpp"
+
+#define PACKET_UNIT_DAMAGED     8
 
 // Helper function for writing data + updating pointer for packets
 template<class T>
