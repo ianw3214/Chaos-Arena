@@ -2,6 +2,7 @@
 #include "common.hpp"
 #include "util.hpp"
 
+#include "interface.hpp"
 #include "game/instance.hpp"
 
 #include <ctime>
@@ -14,22 +15,15 @@ int main(int argc, char* argv[]) {
     // INITIALIZE THE SOCKET API
     if (!Socket::init()) return 1;
 
-    // Instantiate a socket and bind it
-    Socket::Socket socket = Socket::create();
-    if (socket <= 0) ERR("Could not create socket...");
-    Socket::bind(socket);
-
-    Instance instance(socket);
+    // Instantiate an interface for the network
+    Interface network;
+    Instance instance(network);
 
     // RECEIVING A PACKET - 'receive'
     while (true) {
-        Socket::Packet<Socket::BasicPacket> packet = Socket::recieve<Socket::BasicPacket>(socket);
-        if (packet.has_data) {
-            instance.packetRecieved(packet);
-        }
+        Socket::Packet<Socket::BasicPacket> packet = network.recieve();
+        instance.packetRecieved(packet);
     }
-
-    Socket::close(socket);
 
     Socket::shutdown();
 

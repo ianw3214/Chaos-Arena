@@ -2,7 +2,7 @@ CXX = g++
 OUTPUT = -o bin/main
 INCLUDES = -I../common/ -I./src/vendor/
 FLAGS = -std=c++17 -g -Wall $(INCLUDES) -pthread
-OBJS = main.o instance.o map.o
+OBJS = main.o interface.o instance.o map.o 
 BIN_OBJS = $(addprefix bin/objs/, $(OBJS))
 
 # FLAGS THAT DEPEND ON THE OPERATING SYSTEM
@@ -30,6 +30,7 @@ bin_objs:
 	mkdir -p bin/objs
 
 main.o : main.cpp util.hpp
+interface.o: interface.cpp interface.hpp
 instance.o: instance.cpp instance.hpp
 map.o: map.cpp map.hpp
 

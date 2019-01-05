@@ -3,15 +3,10 @@
 #include <thread>
 #include <chrono>
 
-Instance::Instance(const Socket::Socket& socket) : socket(socket) {
+Instance::Instance(Interface& network) : network(network) {
 
     // Initialize instance properties
     map.generate();
-
-    // Start the thread to send packets from the queue
-    std::thread t_packetSender(&Instance::packetSender, this);
-    t_packetSender.detach();
-
     // Start the thread to send clients player info
     std::thread t_clientSender(&Instance::clientSender, this);
     t_clientSender.detach();
@@ -116,9 +111,7 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
 }
 
 void Instance::queuePacket(Socket::BasicPacket packet, Socket::Address address) {
-    packet_lock.lock();
-    packets.emplace(packet, address);
-    packet_lock.unlock();
+    network.sendPacket(packet, address);
     return;
 }
 
@@ -142,16 +135,4 @@ void Instance::clientSender() {
         std::this_thread::sleep_for(std::chrono::milliseconds(PLAYER_POS_SEND_FREQUENCY));
     }
 
-}
-
-void Instance::packetSender() {
-    while (true) {
-        if (!packets.empty()) {
-            packet_lock.lock();
-            QueuePacket packet = packets.front();
-            packets.pop();
-            packet_lock.unlock();
-            Socket::send(socket, packet.address, packet.packet);
-        }
-    }
 }
