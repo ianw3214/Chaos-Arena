@@ -247,7 +247,17 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 				}
 			}
 			if (con_packet.first == PACKET_UNIT_DAMAGED) {
-				LOG("UNIT DAMAGED!");
+				// If the unit is the player, damage it
+				if (con_packet.second == client_id) {
+					player.damaged();
+				} else {
+					// Otherwise, find the unit and play it's damage animation
+					for (auto it = units.begin(); it != units.end(); ++it) {
+						if ((*it).first == con_packet.second) {
+							(*it).second.spriteDamaged();
+						}
+					}
+				}
 			}
 		}
 		if (Socket::getPacketType(packet) == PACKET_3I) {

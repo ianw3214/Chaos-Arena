@@ -139,6 +139,13 @@ void Player::renderUI() {
 	}
 }
 
+void Player::damaged() {
+	// Play the animation
+	unit->spriteDamaged();
+	// TODO: (Ian) Set invuln timers and what not
+	// TODO: (Ian) Update health here
+}
+
 void Player::attack_primary() {
 	// Play the animation
 	unit->attack_primary();

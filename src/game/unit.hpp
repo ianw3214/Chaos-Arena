@@ -19,8 +19,11 @@
 #define UNIT_ANIM_RUN_LEFT		3
 #define UNIT_ANIM_PUNCH_RIGHT	4
 #define UNIT_ANIM_PUNCH_LEFT	5
+#define UNIT_ANIM_DAMAGE_RIGHT	6
+#define UNIT_ANIM_DAMAGE_LEFT	7
 
 #define ATTACK_TIMER_DEFAULT	500
+#define DAMAGE_TIMER_DEFAULT	400
 
 class Map;
 
@@ -63,6 +66,7 @@ public:
 	void spriteMoveRight();
 	void spriteMoveLeft();
 	void spriteStopMove();
+	void spriteDamaged();
 	void setScreenScale(float scale);
 	void calculateScreenPos();
 
@@ -79,6 +83,8 @@ protected:
 	bool face_right;
 	bool attacking;
 	Clock attack_timer;
+	bool damaged;
+	Clock damaged_timer;
 
 	// The sprite of the unit
 	mutable AnimatedSprite sprite;

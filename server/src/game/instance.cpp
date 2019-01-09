@@ -47,6 +47,7 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
             }
         }
         if (packet2i.first == PACKET_PACKETS_RECIEVED) {
+            LOG("PACkeTS: " << packet2i.second << " - " << map.numPackets());
             if (packet2i.second == map.numPackets()) {
                 // Send a ready packet if the player has recieved all the packets
                 Socket::Packet1i ready_packet = { PACKET_DUNGEON_READY };

@@ -49,6 +49,7 @@ public:
 	void renderUI();
 
 	// Player attack methods
+	void damaged();
 	void attack_primary();
 
 private:

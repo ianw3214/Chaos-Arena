@@ -12,6 +12,7 @@ Unit::Unit(int x, int y, float scale) {
 	calculateScreenPos();
 	face_right = true;
 	attacking = false;
+	damaged = false;
 
 	// Set a default sprite
 	setSprite();
@@ -35,6 +36,8 @@ void Unit::setSprite(const std::string & name, int frame_w, int frame_h) {
 	addAnimation(30, 39);
 	addAnimation(40, 49);
 	addAnimation(50, 59);
+	addAnimation(60, 69);
+	addAnimation(70, 79);
 }
 
 void Unit::addAnimation(unsigned int start, unsigned int end) {
@@ -100,8 +103,6 @@ void Unit::move(Direction dir, int distance) {
 
 // TODO: (Ian) Profile this and decide if logic needs to be changed (Probably not)
 void Unit::move(Direction dir, int distance, const Map & map) {
-	LOG("DISTANCE " << distance);
-	LOG("POSITION: " << x << ", " << y);
 	// If the player is already off the map, then RIP
 	if (!map.pointInMap({ x, y })) return;
 	switch (dir) {
@@ -130,29 +131,42 @@ void Unit::move(Direction dir, int distance, const Map & map) {
 	case Direction::RIGHT: { spriteMoveRight(); } break;
 	case Direction::LEFT: { spriteMoveLeft(); } break;
 	}
-	LOG("END POSITION: " << x << ", " << y);
 	calculateScreenPos();
 	return;
 }
 
 void Unit::attack_primary() {
-	// Play the attack animation
-	if (face_right) {
-		playAnimation(UNIT_ANIM_PUNCH_RIGHT);
-		queueAnimation(UNIT_ANIM_IDLE_RIGHT);
+	if (attacking) {
+		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+			attacking = false;
+		}
+	} else if (damaged) {
+		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+			damaged = false;
+		}
 	} else {
-		playAnimation(UNIT_ANIM_PUNCH_LEFT);
-		queueAnimation(UNIT_ANIM_IDLE_LEFT);
+		// Play the attack animation
+		if (face_right) {
+			playAnimation(UNIT_ANIM_PUNCH_RIGHT);
+			queueAnimation(UNIT_ANIM_IDLE_RIGHT);
+		} else {
+			playAnimation(UNIT_ANIM_PUNCH_LEFT);
+			queueAnimation(UNIT_ANIM_IDLE_LEFT);
+		}
+		// Set the animation timer
+		attacking = true;
+		attack_timer.reset();
 	}
-	// Set the animation timer
-	attacking = true;
-	attack_timer.reset();
 }
 
 void Unit::spriteMoveUp() {
 	if (attacking) {
 		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 			attacking = false;
+		}
+	} else if (damaged) {
+		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+			damaged = false;
 		}
 	} else {
 		// Play the run animation based on the direction the unit is facing
@@ -169,6 +183,10 @@ void Unit::spriteMoveDown() {
 		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 			attacking = false;
 		}
+	} else if (damaged) {
+		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+			damaged = false;
+		}
 	} else {
 		// Play the run animation based on the direction the unit is facing
 		if (face_right) {
@@ -184,6 +202,10 @@ void Unit::spriteMoveRight() {
 		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 			attacking = false;
 		}
+	} else if (damaged) {
+		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+			damaged = false;
+		}
 	} else {
 		// Make the sprite face right and play the right animation
 		face_right = true;
@@ -195,6 +217,10 @@ void Unit::spriteMoveLeft() {
 	if (attacking) {
 		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 			attacking = false;
+		}
+	} else if (damaged) {
+		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+			damaged = false;
 		}
 	} else {
 		// Make the sprite face left and play the right animation
@@ -208,6 +234,10 @@ void Unit::spriteStopMove() {
 		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 			attacking = false;
 		}
+	} else if (damaged) {
+		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+			damaged = false;
+		}
 	} else {
 		// Play the idle animation based on the direction the unit is facing
 		// Play the run animation based on the direction the unit is facing
@@ -217,6 +247,21 @@ void Unit::spriteStopMove() {
 			playAnimation(UNIT_ANIM_IDLE_LEFT, false);
 		}
 	}
+}
+
+void Unit::spriteDamaged() {
+	LOG("SPRITE DAMAGED!");
+	// Play the danaged animation
+	if (face_right) {
+		playAnimation(UNIT_ANIM_DAMAGE_RIGHT);
+		queueAnimation(UNIT_ANIM_IDLE_RIGHT);
+	} else {
+		playAnimation(UNIT_ANIM_DAMAGE_LEFT);
+		queueAnimation(UNIT_ANIM_IDLE_LEFT);
+	}
+	// Set the animation timer
+	damaged = true;
+	damaged_timer.reset();
 }
 
 void Unit::setScreenScale(float scale) {
