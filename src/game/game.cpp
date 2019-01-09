@@ -242,6 +242,9 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 					}
 				}
 			}
+			if (con_packet.first == PACKET_UNIT_DAMAGED) {
+				LOG("UNIT DAMAGED!");
+			}
 		}
 		if (Socket::getPacketType(packet) == PACKET_3I) {
 			Socket::Packet3i con_packet = Socket::convertPacket3i(packet);

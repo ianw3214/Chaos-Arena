@@ -23,8 +23,10 @@ struct ClientUnit {
     int m_id;
     Socket::Address m_address;
 
+    // In game player properties
     int m_x;
     int m_y;
+    int m_health;
 };
 
 // TODO: (Ian) Create a logger class for server logging to file
@@ -38,11 +40,9 @@ public:
 
 private:
 
-    // A queue of messages to send
-    void queuePacket(Socket::BasicPacket packet, Socket::Address address);
-
     // NOTE: Using an unordered map may have better performance because we need lookup
     std::list<ClientUnit> clients;
+    void addNewClient(Socket::Address address);
 
     // Game state variables
     Map map;

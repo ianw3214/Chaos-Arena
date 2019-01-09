@@ -21,15 +21,8 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
     if (Socket::getPacketType(packet.data) == PACKET_1I) {
         Socket::Packet1i packet1i = Socket::convertPacket1i(packet.data);
         if (packet1i.val == PACKET_MSG_CONNECT) {
-            // Generate a new player ID and give it to the player
-            int clientId = rand() % 10000;
-            // Change the packet address to the default port
-            clients.push_back({clientId, packet.address, 0, 0});
-            Socket::Packet1i response = { clientId };
-            Socket::BasicPacket con_response = Socket::createBasicPacket(response);
-            // Socket::send(socket, packet.address, con_response);
-            network.sendPacketGuarantee(con_response, packet.address);
-            LOG("Accepted client connection; client ID: " << clientId);
+            // Add the client trying to connect
+            addNewClient(packet.address);
             // Send dungeon generation data to the client
             auto packets = map.generatePackets();
             for (Socket::BasicPacket& map_packet : packets) {
@@ -50,7 +43,7 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
             }
             // Send the same disconnect packet back to the clients
             for (const ClientUnit& client : clients) {
-                queuePacket(Socket::createBasicPacket(packet2i), client.m_address);
+                network.sendPacket(packet2i, client.m_address);
             }
         }
         if (packet2i.first == PACKET_PACKETS_RECIEVED) {
@@ -79,6 +72,7 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
         // TODO: (Ian) Better erorr handling
         if (packetvi.vals.size() == 0) return;
         if (packetvi.vals[0] == PACKET_PLAYER_ATTACK) {
+            LOG("PLAYER ATTACK");
             if (packetvi.vals[2] == ATTACK_BASIC_PUNCH) {
                 if (packetvi.vals.size() < 6) return;
                 std::vector<int> collisions;
@@ -86,27 +80,27 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                 int w = 60;
                 int h = 100;
                 // For now, just construct the rectangle to be the same as the player
-                int x = packetvi.vals[4];
-                int y = packetvi.vals[5];
+                int x = packetvi.vals[4] - 60 / 2;
+                int y = packetvi.vals[5] - 100;
                 // TODO: (Ian) Calculate attacks in some other function maybe
                 // TODO: (Ian) Create attack class and store attacks in a queue
                 for (const ClientUnit& unit : clients) {
+                    if (unit.m_id == packetvi.vals[1]) continue;
                     // Check for collisions to see if any damage is dealt
                     int u_x = unit.m_x - 60 / 2;
                     int u_y = unit.m_y - 100;
                     if (x < u_x + 60 && x + w > u_x && y < u_y + 100 && y + h > u_y) {
                         collisions.push_back(unit.m_id);
-                        
                     }
                 }
                 // Then, send all updates to the players
                 for (const ClientUnit& unit : clients) {
-                    if (unit.m_id != packetvi.vals[1]) queuePacket(packet.data, unit.m_address);
+                    if (unit.m_id != packetvi.vals[1]) network.sendPacketGuarantee(packet.data, unit.m_address);
                     for (int unit_id : collisions) {
                         Socket::Packet2i collision;
                         collision.first = PACKET_UNIT_DAMAGED;
                         collision.second = unit_id;
-                        queuePacket(Socket::createBasicPacket(collision), unit.m_address);
+                        network.sendPacketGuarantee(Socket::createBasicPacket(collision), unit.m_address);
                     }
                 }
             }
@@ -114,26 +108,41 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
     }
 }
 
-void Instance::queuePacket(Socket::BasicPacket packet, Socket::Address address) {
-    network.sendPacket(packet, address);
-    return;
+void Instance::addNewClient(Socket::Address address) {
+    // Generate a new player ID and give it to the player
+    int clientId = rand() % 10000;
+    clients.push_back({clientId, address, 0, 0, 5});
+    Socket::Packet1i response = { clientId };
+    Socket::BasicPacket con_response = Socket::createBasicPacket(response);
+    network.sendPacketGuarantee(con_response, address);
+    LOG("Accepted client connection; client ID: " << clientId);
 }
 
 void Instance::clientSender() {
 
     while (true) {
         // create the client packet
-        Socket::Packetvi packet;
-        packet.vals.push_back(PACKET_PLAYER_POS);
+        std::vector<Socket::Packetvi> packets;
+        Socket::Packetvi current;
+        int current_size = 0;
+        current.vals.push_back(PACKET_PLAYER_POS);
         for (const ClientUnit& client : clients) {
-            packet.vals.push_back(client.m_id);
-            packet.vals.push_back(client.m_x);
-            packet.vals.push_back(client.m_y);
+            // Start working on a new packet if the current one is filled
+            if (current_size > 5) {
+                packets.push_back(current);
+                current.vals.clear();
+                current_size = 0;
+            }
+            current.vals.push_back(client.m_id);
+            current.vals.push_back(client.m_x);
+            current.vals.push_back(client.m_y);
         }
-        Socket::BasicPacket con_packet = Socket::createBasicPacket(packet);
-        for (const ClientUnit& client : clients) {
-            // Socket::send(socket, client.m_address, con_packet);
-            queuePacket(con_packet, client.m_address);
+        packets.push_back(current);
+        for (const auto& packet : packets) {
+            Socket::BasicPacket con_packet = Socket::createBasicPacket(packet);
+            for (const ClientUnit& client : clients) {
+                network.sendPacket(con_packet, client.m_address);
+            }
         }
         // TODO: (Ian) Use a delta time calculation to determine send frequency
         std::this_thread::sleep_for(std::chrono::milliseconds(PLAYER_POS_SEND_FREQUENCY));
