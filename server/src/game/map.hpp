@@ -55,6 +55,7 @@ public:
 
 	// Generating packets to send to the client
 	std::vector<Socket::BasicPacket> generatePackets();
+	int numPackets();
 
     // Generation algorithm for the dungeon layout
     void generate();

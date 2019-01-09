@@ -12,37 +12,45 @@ Vec2i getRandomPointInCircle(int radius) {
 }
 
 std::vector<Socket::BasicPacket> Map::generatePackets() {
-	std::vector<Socket::BasicPacket> packets;
-	// Turn all the main rooms into basic packets
-	for (const Room& room : main_rooms) {
-		Socket::Packetvi packet;
-		packet.vals.push_back(PACKET_DATA_ROOM);
-		packet.vals.push_back(room.pos.x);
-		packet.vals.push_back(room.pos.y);
-		packet.vals.push_back(room.w);
-		packet.vals.push_back(room.h);
-		packets.push_back(Socket::createBasicPacket(packet));
-	}
-	// Turn all the hallways into basic packets
-	for (const Edge& edge : hallways) {
-		Socket::Packetvi packet;
-		packet.vals.push_back(PACKET_DATA_HALLWAY);
-		packet.vals.push_back(edge.v1.x);
-		packet.vals.push_back(edge.v1.y);
-		packet.vals.push_back(edge.v2.x);
-		packet.vals.push_back(edge.v2.y);
-		packets.push_back(Socket::createBasicPacket(packet));
-	}
-	// Send a packet for spawn room data as well
-	{
-		const Room& spawn_room = main_rooms[spawn_room_index];
-		Socket::Packet3i packet;
-		packet.first = PACKET_DATA_SPAWNPOINT;
-		packet.second = spawn_room.pos.x + rand() % spawn_room.w;
-		packet.third = spawn_room.pos.y + rand() % spawn_room.h;
-		packets.push_back(Socket::createBasicPacket(packet));
+	static bool generated = false;
+	static std::vector<Socket::BasicPacket> packets;
+	if (!generated) {
+		// Turn all the main rooms into basic packets
+		for (const Room& room : main_rooms) {
+			Socket::Packetvi packet;
+			packet.vals.push_back(PACKET_DATA_ROOM);
+			packet.vals.push_back(room.pos.x);
+			packet.vals.push_back(room.pos.y);
+			packet.vals.push_back(room.w);
+			packet.vals.push_back(room.h);
+			packets.push_back(Socket::createBasicPacket(packet));
+		}
+		// Turn all the hallways into basic packets
+		for (const Edge& edge : hallways) {
+			Socket::Packetvi packet;
+			packet.vals.push_back(PACKET_DATA_HALLWAY);
+			packet.vals.push_back(edge.v1.x);
+			packet.vals.push_back(edge.v1.y);
+			packet.vals.push_back(edge.v2.x);
+			packet.vals.push_back(edge.v2.y);
+			packets.push_back(Socket::createBasicPacket(packet));
+		}
+		// Send a packet for spawn room data as well
+		{
+			const Room& spawn_room = main_rooms[spawn_room_index];
+			Socket::Packet3i packet;
+			packet.first = PACKET_DATA_SPAWNPOINT;
+			packet.second = spawn_room.pos.x + rand() % spawn_room.w;
+			packet.third = spawn_room.pos.y + rand() % spawn_room.h;
+			packets.push_back(Socket::createBasicPacket(packet));
+		}
+		generated = true;
 	}
 	return packets;
+}
+
+int Map::numPackets() {
+	return generatePackets().size();
 }
 
 void Map::generate() {

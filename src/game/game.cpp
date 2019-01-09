@@ -33,6 +33,8 @@ bool				Game::connected;
 int					Game::packet_delta;
 int					Game::packet_last_tick;
 
+int					Game::packetsRecieved;
+
 // TEMPORARY CODE
 Map map;
 
@@ -45,12 +47,20 @@ void Game::f_sendConnection() {
 	// TOOD: (Ian) Limit the amount of tries here
 	// Keep sending connection packets every 500 ms until server connects
 	do {
+		LOG("SENDING CONNECTION");
 		Socket::Packet1i con_request = { PACKET_MSG_CONNECT };
 		Socket::BasicPacket packet = Socket::createBasicPacket(con_request);
 		network->sendPacket(packet, dest);
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1500));
 	} while (!connected);
+}
+
+void Game::sendRecievedPackets() {
+	Socket::Packet2i packet;
+	packet.first = PACKET_PACKETS_RECIEVED;
+	packet.second = packetsRecieved;
+	network->sendPacketGuarantee(packet, dest);
 }
 
 void Game::init(Interface * net) {
@@ -60,6 +70,7 @@ void Game::init(Interface * net) {
 	camera_x = 0;
 	camera_y = 0;
 	player.init();
+	packetsRecieved = 0;
 	
 	// Clear the map at the beginning just to be safe
 	map.clearMapData();
@@ -235,7 +246,10 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 		if (Socket::getPacketType(packet) == PACKET_3I) {
 			Socket::Packet3i con_packet = Socket::convertPacket3i(packet);
 			if (con_packet.first == PACKET_DATA_SPAWNPOINT) {
+				// Set the spawn point if not yet set and send response to server
 				map.setSpawnPoint(con_packet.second, con_packet.third);
+				packetsRecieved++;
+				sendRecievedPackets();
 			}
 		}
 		if (Socket::getPacketType(packet) == PACKET_VI) {
@@ -276,6 +290,8 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 				int w = con_packet.vals[3];
 				int h = con_packet.vals[4];
 				map.addMainRoom({ 0, {x, y}, w, h });
+				packetsRecieved++;
+				sendRecievedPackets();
 			}
 			if (con_packet.vals[0] == PACKET_DATA_HALLWAY) {
 				// Add a hallway edge to the map
@@ -285,6 +301,8 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 				int x2 = con_packet.vals[3];
 				int y2 = con_packet.vals[4];
 				map.addHallwayEdge({ 0, 0, { x1, y1 }, { x2, y2 } });
+				packetsRecieved++;
+				sendRecievedPackets();
 			}
 			if (con_packet.vals[0] == PACKET_PLAYER_ATTACK) {
 				int id = con_packet.vals[1];

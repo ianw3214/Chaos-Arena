@@ -26,6 +26,7 @@ struct ExpectedPacket {
 	std::chrono::milliseconds timestamp;
 	// The packet data in case it needs resending
 	Socket::BasicPacket data;
+	ExpectedPacket(int id) : packet_id(id) {}
 	ExpectedPacket(int id, Socket::BasicPacket data) : packet_id(id), data(data) {
 		timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
 	}

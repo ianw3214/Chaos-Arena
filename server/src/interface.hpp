@@ -10,6 +10,9 @@
 #include <atomic>
 #include <chrono>
 
+// DEFINES
+#define EXPECTED_PACKET_WAIT_TIME   400
+
 // A wrapper class to include address with each packet to send
 struct PacketWrapper {
     Socket::BasicPacket packet;
@@ -26,7 +29,10 @@ struct ExpectedPacket {
     std::chrono::milliseconds timestamp;
     // The packet data in case it needs resending
     Socket::BasicPacket data;
-    ExpectedPacket(int id, Socket::BasicPacket data) : packet_id(id), data(data) {
+    Socket::Address address;
+    // Constructor for emplace
+    ExpectedPacket() {}
+    ExpectedPacket(int id, Socket::BasicPacket data, Socket::Address address) : packet_id(id), data(data), address(address) {
         timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
     }
 };

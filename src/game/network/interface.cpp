@@ -1,5 +1,7 @@
 #include "interface.hpp"
 
+#include "utils/utils.hpp"
+
 Interface::Interface(int port) : m_port(port) {
 	m_socket = Socket::create();
 	Socket::bind(m_socket, m_port);
@@ -110,16 +112,30 @@ void Interface::sendPacketGuarantee(Socket::BasicPacket packet, Socket::Address 
 
 Socket::Packet<Socket::BasicPacket> Interface::recieve() {
 	Socket::Packet<Socket::BasicPacket> packet = Socket::recieve<Socket::BasicPacket>(m_socket);
-	// If the recieved packet is a guaranteed packet, send the response
-	if (packet.has_data && Socket::isPacketGuaranteed(packet.data)) {
-		Socket::Packet2i response;
-		response.first = PACKET_ID_RESPONSE;
-		response.second = Socket::getPacketId(packet.data);
-		sendPacket(response, packet.address);
+	if (packet.has_data) {
+		// If the recieved packet is a guaranteed packet, send the response
+		if (Socket::isPacketGuaranteed(packet.data)) {
+			Socket::Packet2i response;
+			response.first = PACKET_ID_RESPONSE;
+			response.second = Socket::getPacketId(packet.data);
+			sendPacket(response, packet.address);
+		}
+		// If the packet id is in the expected response, remove it
+		if (Socket::getPacketType(packet.data) == PACKET_2I) {
+			Socket::Packet2i packet2i = Socket::convertPacket2i(packet.data);
+			if (packet2i.first == PACKET_ID_RESPONSE) {
+				ExpectedPacket match(packet2i.second);
+				m_response_lock.lock();
+				std::set<ExpectedPacket>::iterator it = m_expected_response.find(match);
+				if (it != m_expected_response.end()) {
+					m_expected_response.erase(it);
+				}
+				m_response_lock.unlock();
+			}
+		}
+		return packet;
 	}
-	// If the packet id is in the expected response, remove it
-
-	return packet;
+	return { false };
 }
 
 // The function that continuously sends packets

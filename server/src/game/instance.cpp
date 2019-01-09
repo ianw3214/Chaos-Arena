@@ -28,16 +28,13 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
             Socket::Packet1i response = { clientId };
             Socket::BasicPacket con_response = Socket::createBasicPacket(response);
             // Socket::send(socket, packet.address, con_response);
-            queuePacket(con_response, packet.address);
+            network.sendPacketGuarantee(con_response, packet.address);
             LOG("Accepted client connection; client ID: " << clientId);
             // Send dungeon generation data to the client
-            // TODO: (Ian) Handle packet loss
             auto packets = map.generatePackets();
             for (Socket::BasicPacket& map_packet : packets) {
-                queuePacket(map_packet, packet.address);
+                network.sendPacketGuarantee(map_packet, packet.address);
             }
-            Socket::Packet1i ready_packet = { PACKET_DUNGEON_READY };
-            queuePacket(Socket::createBasicPacket(ready_packet), packet.address);
         }
     }
     if (Socket::getPacketType(packet.data) == PACKET_2I) {
@@ -54,6 +51,13 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
             // Send the same disconnect packet back to the clients
             for (const ClientUnit& client : clients) {
                 queuePacket(Socket::createBasicPacket(packet2i), client.m_address);
+            }
+        }
+        if (packet2i.first == PACKET_PACKETS_RECIEVED) {
+            if (packet2i.second == map.numPackets()) {
+                // Send a ready packet if the player has recieved all the packets
+                Socket::Packet1i ready_packet = { PACKET_DUNGEON_READY };
+                network.sendPacketGuarantee(ready_packet, packet.address);
             }
         }
     }

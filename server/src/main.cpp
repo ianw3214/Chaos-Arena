@@ -17,12 +17,15 @@ int main(int argc, char* argv[]) {
 
     // Instantiate an interface for the network
     Interface network;
+    network.setNonBlock();
     Instance instance(network);
 
     // RECEIVING A PACKET - 'receive'
     while (true) {
         Socket::Packet<Socket::BasicPacket> packet = network.recieve();
-        instance.packetRecieved(packet);
+        if (packet.has_data) {
+            instance.packetRecieved(packet);
+        }
     }
 
     Socket::shutdown();

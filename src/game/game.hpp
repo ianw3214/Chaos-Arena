@@ -72,4 +72,8 @@ private:
 	static int packet_delta;
 	static int packet_last_tick;
 
+	// Helper function for sending response of number of packets recieved
+	static int packetsRecieved;
+	static void sendRecievedPackets();
+
 };
