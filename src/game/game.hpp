@@ -73,6 +73,7 @@ private:
 	static int packet_last_tick;
 
 	// Helper function for sending response of number of packets recieved
+	static bool spawnPointRecieved;
 	static int packetsRecieved;
 	static void sendRecievedPackets();
 

@@ -62,7 +62,6 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
             if (client.m_id == packet3i.first) {
                 client.m_x = packet3i.second;
                 client.m_y = packet3i.third;
-                // LOG("Updated client: " << client.m_id << " TO (" << client.m_x << ", " << client.m_y << ")");
                 break;
             }
         }
@@ -110,6 +109,7 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
 
 void Instance::addNewClient(Socket::Address address) {
     // Generate a new player ID and give it to the player
+    // TODO: (Ian) Make sure the ID doesn't already exist
     int clientId = rand() % 10000;
     clients.push_back({clientId, address, 0, 0, 5});
     Socket::Packet1i response = { clientId };

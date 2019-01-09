@@ -86,6 +86,20 @@ void Map::setSpawnPoint(int x, int y) {
 	spawnPoint = Vec2i{ x, y };
 }
 
+bool Map::containsRoom(int x, int y, int w, int h) {
+	for (const auto& room : main_rooms) {
+		if (room.pos.x == x && room.pos.y == y && room.w == w && room.h == h) return true;
+	}
+	return false;
+}
+
+bool Map::containsHallway(int x1, int y1, int x2, int y2) {
+	for (const auto& edge : hallways) {
+		if (edge.v1.x == x1 && edge.v1.y == y1 && edge.v2.x == x2 && edge.v2.y == y2) return true;
+	}
+	return false;
+}
+
 bool Map::pointInMap(Vec2i point, int tile_size) const {
 	// basic checks
 	if (point.x < 0 || point.y < 0 || point.x > tile_size * map_width || point.y > tile_size * map_height) return false;

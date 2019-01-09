@@ -60,6 +60,9 @@ public:
 	void addMainRoom(Room room);
 	void addHallwayEdge(Edge edge);
 	void setSpawnPoint(int x, int y);
+	// Other utility methods for packet handling
+	bool containsRoom(int x, int y, int w, int h);
+	bool containsHallway(int x1, int y1, int x2, int y2);
 
 	// Utility methods to interact with map
 	bool pointInMap(Vec2i point, int tile_size = TILE_SIZE) const;

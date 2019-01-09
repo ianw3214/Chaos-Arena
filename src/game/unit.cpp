@@ -100,6 +100,8 @@ void Unit::move(Direction dir, int distance) {
 
 // TODO: (Ian) Profile this and decide if logic needs to be changed (Probably not)
 void Unit::move(Direction dir, int distance, const Map & map) {
+	LOG("DISTANCE " << distance);
+	LOG("POSITION: " << x << ", " << y);
 	// If the player is already off the map, then RIP
 	if (!map.pointInMap({ x, y })) return;
 	switch (dir) {
@@ -128,6 +130,7 @@ void Unit::move(Direction dir, int distance, const Map & map) {
 	case Direction::RIGHT: { spriteMoveRight(); } break;
 	case Direction::LEFT: { spriteMoveLeft(); } break;
 	}
+	LOG("END POSITION: " << x << ", " << y);
 	calculateScreenPos();
 	return;
 }

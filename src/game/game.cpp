@@ -33,6 +33,7 @@ bool				Game::connected;
 int					Game::packet_delta;
 int					Game::packet_last_tick;
 
+bool				Game::spawnPointRecieved;
 int					Game::packetsRecieved;
 
 // TEMPORARY CODE
@@ -70,6 +71,8 @@ void Game::init(Interface * net) {
 	camera_x = 0;
 	camera_y = 0;
 	player.init();
+	// Helper variables for recieving dungeon data
+	spawnPointRecieved = false;
 	packetsRecieved = 0;
 	
 	// Clear the map at the beginning just to be safe
@@ -217,6 +220,7 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 		if (Socket::getPacketType(packet) == PACKET_1I) {
 			Socket::Packet1i con_packet = Socket::convertPacket1i(packet);
 			if (con_packet.val == PACKET_DUNGEON_READY) {
+				LOG("DUNGEON READY PACKET");
 				// Set a flag here to indicate ready
 				// TODO: (Ian) Move this to a function somewhere
 				map.generateTilemap();
@@ -250,9 +254,12 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 			Socket::Packet3i con_packet = Socket::convertPacket3i(packet);
 			if (con_packet.first == PACKET_DATA_SPAWNPOINT) {
 				// Set the spawn point if not yet set and send response to server
-				map.setSpawnPoint(con_packet.second, con_packet.third);
-				packetsRecieved++;
-				sendRecievedPackets();
+				if (!spawnPointRecieved) {
+					map.setSpawnPoint(con_packet.second, con_packet.third);
+					packetsRecieved++;
+					sendRecievedPackets();
+					spawnPointRecieved = true;
+				}
 			}
 		}
 		if (Socket::getPacketType(packet) == PACKET_VI) {
@@ -292,9 +299,11 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 				int y = con_packet.vals[2];
 				int w = con_packet.vals[3];
 				int h = con_packet.vals[4];
-				map.addMainRoom({ 0, {x, y}, w, h });
-				packetsRecieved++;
-				sendRecievedPackets();
+				if (!map.containsRoom(x, y, w, h)) {
+					map.addMainRoom({ 0, {x, y}, w, h });
+					packetsRecieved++;
+					sendRecievedPackets();
+				}
 			}
 			if (con_packet.vals[0] == PACKET_DATA_HALLWAY) {
 				// Add a hallway edge to the map
@@ -303,9 +312,11 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 				int y1 = con_packet.vals[2];
 				int x2 = con_packet.vals[3];
 				int y2 = con_packet.vals[4];
-				map.addHallwayEdge({ 0, 0, { x1, y1 }, { x2, y2 } });
-				packetsRecieved++;
-				sendRecievedPackets();
+				if (!map.containsHallway(x1, y1, x2, y2)) {
+					map.addHallwayEdge({ 0, 0, { x1, y1 }, { x2, y2 } });
+					packetsRecieved++;
+					sendRecievedPackets();
+				}
 			}
 			if (con_packet.vals[0] == PACKET_PLAYER_ATTACK) {
 				int id = con_packet.vals[1];

@@ -12,8 +12,9 @@ Vec2i getRandomPointInCircle(int radius) {
 }
 
 std::vector<Socket::BasicPacket> Map::generatePackets() {
+	// Generate a vector of static room data that never changes first
 	static bool generated = false;
-	static std::vector<Socket::BasicPacket> packets;
+	static std::vector<Socket::BasicPacket> basic_packets;
 	if (!generated) {
 		// Turn all the main rooms into basic packets
 		for (const Room& room : main_rooms) {
@@ -23,7 +24,7 @@ std::vector<Socket::BasicPacket> Map::generatePackets() {
 			packet.vals.push_back(room.pos.y);
 			packet.vals.push_back(room.w);
 			packet.vals.push_back(room.h);
-			packets.push_back(Socket::createBasicPacket(packet));
+			basic_packets.push_back(Socket::createBasicPacket(packet));
 		}
 		// Turn all the hallways into basic packets
 		for (const Edge& edge : hallways) {
@@ -33,18 +34,19 @@ std::vector<Socket::BasicPacket> Map::generatePackets() {
 			packet.vals.push_back(edge.v1.y);
 			packet.vals.push_back(edge.v2.x);
 			packet.vals.push_back(edge.v2.y);
-			packets.push_back(Socket::createBasicPacket(packet));
-		}
-		// Send a packet for spawn room data as well
-		{
-			const Room& spawn_room = main_rooms[spawn_room_index];
-			Socket::Packet3i packet;
-			packet.first = PACKET_DATA_SPAWNPOINT;
-			packet.second = spawn_room.pos.x + rand() % spawn_room.w;
-			packet.third = spawn_room.pos.y + rand() % spawn_room.h;
-			packets.push_back(Socket::createBasicPacket(packet));
+			basic_packets.push_back(Socket::createBasicPacket(packet));
 		}
 		generated = true;
+	}
+	// Then add dynamic data that differs between each client
+	std::vector<Socket::BasicPacket> packets = basic_packets;
+	{	// Send a packet for spawn room data as well
+		const Room& spawn_room = main_rooms[spawn_room_index];
+		Socket::Packet3i packet;
+		packet.first = PACKET_DATA_SPAWNPOINT;
+		packet.second = spawn_room.pos.x + rand() % spawn_room.w;
+		packet.third = spawn_room.pos.y + rand() % spawn_room.h;
+		packets.push_back(Socket::createBasicPacket(packet));
 	}
 	return packets;
 }
