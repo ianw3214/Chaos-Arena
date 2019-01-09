@@ -6,6 +6,7 @@
 #include "utils/utils.hpp"
 
 #include "game/game.hpp"
+#include "game/network/interface.hpp"
 
 // TODO: (Ian) Figure out where to move this
 int delta;
@@ -21,25 +22,35 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 	
-	Game::init();
+	{	// The actual running of the game
+		Interface network;
+		network.setNonBlock();
 
-	// Initialize delta and last_tick
-	delta = last_tick = SDL_GetTicks();
+		Game::init(&network);
 
-	while(Game::isRunning()) {
-		delta = SDL_GetTicks() - last_tick;
-		if (delta < 33) continue;
-		last_tick = SDL_GetTicks();
-		
-		Renderer::clear();
+		// Initialize delta and last_tick
+		delta = last_tick = SDL_GetTicks();
 
-		Game::update(delta);
-		Game::render();
+		while (Game::isRunning()) {
+			// Recieve packets on the network and pass them to the game
+			Socket::Packet<Socket::BasicPacket> packet = network.recieve();
+			if (packet.has_data) {
+				Game::packetRecieved(packet.data);
+			}
+			// Then detemine if the game state needs to be updated
+			delta = SDL_GetTicks() - last_tick;
+			if (delta < 33) continue;
+			last_tick = SDL_GetTicks();
 
-		Engine::swapScreenBuffer();
+			Renderer::clear();
+			Game::update(delta);
+			Game::render();
+			Engine::swapScreenBuffer();
+		}
+
+		Game::shutdown();
 	}
-
-	Game::shutdown();
+	
 	Engine::shutdown();
 	Socket::shutdown();
 

@@ -146,6 +146,7 @@
     <ClCompile Include="src\engine\textureManager\textureManager.cpp" />
     <ClCompile Include="src\game\game.cpp" />
     <ClCompile Include="src\game\map.cpp" />
+    <ClCompile Include="src\game\network\interface.cpp" />
     <ClCompile Include="src\game\player.cpp" />
     <ClCompile Include="src\game\unit.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="src\game\game.hpp" />
     <ClInclude Include="src\game\gameUtils.hpp" />
     <ClInclude Include="src\game\map.hpp" />
+    <ClInclude Include="src\game\network\interface.hpp" />
     <ClInclude Include="src\game\player.hpp" />
     <ClInclude Include="src\game\unit.hpp" />
     <ClInclude Include="src\menu\menu.hpp" />

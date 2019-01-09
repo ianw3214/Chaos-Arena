@@ -3,12 +3,14 @@
 #include "unit.hpp"
 #include "player.hpp"
 
-#include "socket.hpp"
+#include "common.hpp"
 
 #include <unordered_map>
 #include <mutex>
 #include <atomic>
-#include <queue>
+#include <thread>
+
+class Interface;
 
 // TODO: (Ian) Figure out a better way of storing this
 #define UNIT_PER_TILE	64
@@ -29,7 +31,7 @@ class Game {
 
 public:
 
-	static void init();
+	static void init(Interface * interface);
 	static void shutdown();
 	static void update(int delta);
 	static void render();
@@ -37,13 +39,12 @@ public:
 	static bool isRunning();
 	static void setScreenScale(float scale);
 
-	// Multithreaded code
-	// TODO: (Ian) Figure out how to stop these threads once the game exits
-	// TODO: (Ian) Queue structure to send data in a centralized location
-	static void packetSender();
-	static void serverPacketListener();
-	static std::thread t_serverPacketSender;
-	static std::thread t_serverPacketReciever;
+	// Packet recieving code
+	static void packetRecieved(Socket::BasicPacket packet);
+
+	// Connection packet sending thread
+	static void f_sendConnection();
+	static std::thread t_sendConnection;
 
 private:
 
@@ -63,18 +64,12 @@ private:
 	static std::unordered_map<int, UnitMovement> movements;
 
 	// Network code
-	static Socket::Socket socket;
+	static Interface * network;
 	// TODO: (Ian) Perhaps there is a better way of storing this
 	static int client_id;
 	// TODO: (Ian) Find a better solution instead of busy waiting
 	static bool connected;
-	static std::mutex packet_queue_mutex;
-	static std::queue<Socket::BasicPacket> packet_queue;
 	static int packet_delta;
 	static int packet_last_tick;
-
-	static bool hasPacket();
-	static void addPacket(const Socket::BasicPacket packet);
-	static Socket::BasicPacket getPacket();
 
 };

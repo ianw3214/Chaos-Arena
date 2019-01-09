@@ -4,6 +4,9 @@ Interface::Interface(int port) : m_port(port) {
     m_socket = Socket::create();
     Socket::bind(m_socket, m_port);
 
+    // Don't use 0 because that means NOT guaranteed
+    m_packet_id = 1;
+
     m_running = true;
     t_packet_sender = std::thread(&Interface::f_packet_sender, this);
 }
@@ -54,49 +57,54 @@ void Interface::sendPacket(Socket::BasicPacket packet, Socket::Address address) 
 void Interface::sendPacketGuarantee(Socket::Packet1i packet, Socket::Address address) {
     m_send_lock.lock();
     int id = m_packet_id++;
+    if (m_packet_id == 0) m_packet_id = 1;
     packets.emplace(Socket::createBasicPacket(packet, id), address);
     m_send_lock.unlock();
     m_response_lock.lock();
-    m_expected_response.emplace(id);
+    m_expected_response.emplace(id, Socket::createBasicPacket(packet, id));
     m_response_lock.unlock();
 }
 
 void Interface::sendPacketGuarantee(Socket::Packet2i packet, Socket::Address address) {
     m_send_lock.lock();
     int id = m_packet_id++;
+    if (m_packet_id == 0) m_packet_id = 1;
     packets.emplace(Socket::createBasicPacket(packet, id), address);
     m_send_lock.unlock();
     m_response_lock.lock();
-    m_expected_response.emplace(id);
+    m_expected_response.emplace(id, Socket::createBasicPacket(packet, id));
     m_response_lock.unlock();
 }
 void Interface::sendPacketGuarantee(Socket::Packet3i packet, Socket::Address address) {
     m_send_lock.lock();
     int id = m_packet_id++;
+    if (m_packet_id == 0) m_packet_id = 1;
     packets.emplace(Socket::createBasicPacket(packet, id), address);
     m_send_lock.unlock();
     m_response_lock.lock();
-    m_expected_response.emplace(id);
+    m_expected_response.emplace(id, Socket::createBasicPacket(packet, id));
     m_response_lock.unlock();
 }
 void Interface::sendPacketGuarantee(Socket::Packetvi packet, Socket::Address address) {
     m_send_lock.lock();
     int id = m_packet_id++;
+    if (m_packet_id == 0) m_packet_id = 1;
     packets.emplace(Socket::createBasicPacket(packet, id), address);
     m_send_lock.unlock();
     m_response_lock.lock();
-    m_expected_response.emplace(id);
+    m_expected_response.emplace(id, Socket::createBasicPacket(packet, id));
     m_response_lock.unlock();
 }
 
 void Interface::sendPacketGuarantee(Socket::BasicPacket packet, Socket::Address address) {
     m_send_lock.lock();
     int id = m_packet_id++;
+    if (m_packet_id == 0) m_packet_id = 1;
     packet.packet_id = id;
     packets.emplace(packet, address);
     m_send_lock.unlock();
     m_response_lock.lock();
-    m_expected_response.emplace(id);
+    m_expected_response.emplace(id, packet);
     m_response_lock.unlock();
 }
 
