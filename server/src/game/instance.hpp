@@ -6,6 +6,7 @@
 #include <list>
 #include <queue>
 #include <mutex>
+#include <chrono>
 
 #include "../interface.hpp"
 #include "map.hpp"
@@ -15,6 +16,8 @@
 #define ERR(x) std::cerr << "[ERR]: " << x << std::endl;
 
 #define PLAYER_POS_SEND_FREQUENCY   100
+
+#define PLAYER_DEFAULT_HEALTH       5
 
 // Constant variables
 const std::string connect_message = std::string("connect");

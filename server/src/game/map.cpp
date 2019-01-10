@@ -57,6 +57,16 @@ int Map::numPackets() {
 	return generatePackets().size();
 }
 
+int Map::getRandomSpawnX() const {
+	const Room& spawn_room = main_rooms[spawn_room_index];
+	return spawn_room.pos.x + rand() % spawn_room.w;
+}
+
+int Map::getRandomSpawnY() const {
+	const Room& spawn_room = main_rooms[spawn_room_index];
+	return spawn_room.pos.y + rand() % spawn_room.h;
+}
+
 void Map::generate() {
 	bool rooms_generated = false;
 	do {

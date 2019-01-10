@@ -49,6 +49,7 @@ public:
 	void move(Direction dir, int distance);
 	void move(Direction dir, int distance, const Map& map);
 	void setDead();
+	void respawn(int x, int y);
 
 	// Attack functions just handle attack visuals
 	// For now, all units have the same attacks

@@ -57,6 +57,10 @@ public:
 	std::vector<Socket::BasicPacket> generatePackets();
 	int numPackets();
 
+	// Other helper methods for the instance to interface
+	int getRandomSpawnX() const;
+	int getRandomSpawnY() const;
+
     // Generation algorithm for the dungeon layout
     void generate();
 

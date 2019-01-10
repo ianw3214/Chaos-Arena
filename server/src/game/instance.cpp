@@ -46,6 +46,20 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                 network.sendPacket(packet2i, client.m_address);
             }
         }
+        if (packet2i.first == PACKET_UNIT_RESPAWN) {
+            // Also let the units health be restored to normal
+            ClientUnit * client = getClientById(packet2i.second);
+            if (client) client->m_health = PLAYER_DEFAULT_HEALTH;
+            // Let all clients know that a unit has respawned
+            Socket::Packetvi spawn_response;
+            spawn_response.vals.push_back(PACKET_UNIT_RESPAWN);
+            spawn_response.vals.push_back(packet2i.second);
+            spawn_response.vals.push_back(map.getRandomSpawnX());
+            spawn_response.vals.push_back(map.getRandomSpawnY());
+            for (const ClientUnit& client : clients) {
+                network.sendPacketGuarantee(spawn_response, client.m_address);
+            }
+        }
     }
     if (Socket::getPacketType(packet.data) == PACKET_3I) {
         // Update the corresponding player position
@@ -55,7 +69,6 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                 // Send a ready packet if the player has recieved all the packets
                 Socket::Packet1i ready_packet = { PACKET_DUNGEON_READY };
                 network.sendPacketGuarantee(ready_packet, packet.address);
-                // TODO: (Ian) Set the player to ready
                 ClientUnit * client = getClientById(packet3i.third);
                 if (client) {
                     client->ready = true;
@@ -91,6 +104,8 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                 // TODO: (Ian) Create attack class and store attacks in a queue
                 for (const ClientUnit& unit : clients) {
                     if (unit.m_id == packetvi.vals[1]) continue;
+                    // If the unit is dead, ignore it
+                    if (unit.m_health <= 0) continue;
                     // Check for collisions to see if any damage is dealt
                     int u_x = unit.m_x - 60 / 2;
                     int u_y = unit.m_y - 100;
@@ -138,7 +153,7 @@ void Instance::addNewClient(Socket::Address address) {
     while(getClientById(clientId)) {
         clientId = rand() % 10000;
     }
-    clients.push_back({clientId, address, false, 0, 0, 5});
+    clients.push_back({clientId, address, false, 0, 0, PLAYER_DEFAULT_HEALTH});
     Socket::Packet1i response = { clientId };
     Socket::BasicPacket con_response = Socket::createBasicPacket(response);
     network.sendPacketGuarantee(con_response, address);

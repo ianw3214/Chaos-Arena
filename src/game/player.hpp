@@ -21,6 +21,8 @@ class Map;
 #define HEART_WIDTH				50
 #define HEART_HEIGHT			50
 
+#define RESPAWN_TIMER			5000
+
 class Player {
 
 public:
@@ -48,6 +50,7 @@ public:
 	void update(int delta, int units_per_tile, const Map& map);
 	void renderUI();
 	void setDead();
+	void respawn(int x, int y);
 
 	// Player attack methods
 	void damaged();
@@ -64,6 +67,10 @@ private:
 	// Player properties
 	int health;
 	bool dead;
+
+	// Timers
+	bool respawn_sent;
+	Clock respawn_timer;
 
 	// Input flags
 	bool move_up;

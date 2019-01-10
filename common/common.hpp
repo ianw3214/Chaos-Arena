@@ -29,6 +29,7 @@ typedef char PacketType;
 
 #define PACKET_UNIT_DAMAGED     10
 #define PACKET_UNIT_DEAD        11
+#define PACKET_UNIT_RESPAWN     12
 
 // Helper function for writing data + updating pointer for packets
 template<class T>

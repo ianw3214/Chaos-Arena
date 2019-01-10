@@ -261,15 +261,11 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 				}
 			}
 			if (con_packet.first == PACKET_UNIT_DEAD) {
-				LOG("UNIT DEAD");
 				if (con_packet.second == client_id) {
-					LOG("PLAYER DEAD");
 					player.setDead();
 				} else {
-					LOG("OTHER DEAD");
 					for (auto it = units.begin(); it != units.end(); ++it) {
 						if ((*it).first == con_packet.second) {
-							LOG("OTHER FOUND");
 							(*it).second.setDead();
 						}
 					}
@@ -349,6 +345,23 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 				bool face_right = con_packet.vals[3] == FACE_RIGHT ? true : false;
 				// TODO: (Ian) Set face_right of unit as well
 				units[id].attack_primary();
+			}
+			if (con_packet.vals[0] == PACKET_UNIT_RESPAWN) {
+				if (con_packet.vals.size() < 4) return;	// ERROR
+				int x = con_packet.vals[2];
+				int y = con_packet.vals[3];
+				Vec2i spawn_coords = map.tileToPixelCoords(Vec2i{ x, y });
+				if (con_packet.vals[1] == client_id) {
+					// Respawn the player
+					player.respawn(spawn_coords.x, spawn_coords.y);
+				} else {
+					// Respawn the unit
+					for (auto it = units.begin(); it != units.end(); ++it) {
+						if ((*it).first == con_packet.vals[1]) {
+							(*it).second.respawn(spawn_coords.x, spawn_coords.y);
+						}
+					}
+				}
 			}
 		}
 	}

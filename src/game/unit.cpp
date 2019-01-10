@@ -142,6 +142,13 @@ void Unit::setDead() {
 	sprite.playAnimation(UNIT_ANIM_DEAD);
 }
 
+void Unit::respawn(int x, int y) {
+	this->x = x;
+	this->y = y;
+	dead = false;
+	calculateScreenPos();
+}
+
 void Unit::attack_primary() {
 	if (!dead) {
 		if (attacking) {

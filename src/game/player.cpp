@@ -132,6 +132,16 @@ void Player::update(int delta, int units_per_tile, const Map & map) {
 		// Set the player to an idle state if there is no movement
 		if (!move_up && !move_down && !move_right && !move_left) unit->spriteStopMove();
 	}
+	// Check whether to send a respawn request depending on death time
+	if (dead) {
+		if (!respawn_sent && respawn_timer.getTicks() > RESPAWN_TIMER) {
+			Socket::Packet2i respawn_request;
+			respawn_request.first = PACKET_UNIT_RESPAWN;
+			respawn_request.second = player_id;
+			addPacket(Socket::createBasicPacket(respawn_request));
+			respawn_sent = true;
+		}
+	}
 }
 
 // Render UI related to the player
@@ -145,14 +155,22 @@ void Player::renderUI() {
 }
 
 void Player::setDead() {
+	health = 0;
 	dead = true;
 	unit->setDead();
+	respawn_timer.reset();
+	respawn_sent = false;
+}
+
+void Player::respawn(int x, int y) {
+	unit->respawn(x, y);
+	health = DEFAULT_PLAYER_HEALTH;
+	dead = false;
 }
 
 void Player::damaged() {
 	// Play the animation
 	unit->spriteDamaged();
-	// TODO: (Ian) Update player death
 	health--;
 	// TODO: (Ian) Set invuln timers and what not
 }
