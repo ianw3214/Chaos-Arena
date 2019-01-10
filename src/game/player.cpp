@@ -21,6 +21,7 @@ Player::~Player() {
 
 // Just an initialization functions for sprites and shit
 void Player::init() {
+	// Initialize unit and it's sprites
 	if (unit) delete unit;
 	unit = new Unit(0, 0, screen_scale);
 	unit->setSprite(PLAYER_SPRITE, PLAYER_FRAME_W, PLAYER_FRAME_H);
@@ -198,7 +199,7 @@ void Player::damaged() {
 
 void Player::attack_primary() {
 	if (!unit->isAttacking() && !unit->isDamaged() && !unit->isDashing()) {
-		// Play the animation
+		// Play the animations
 		unit->attack_primary();
 		// Send a packet to the server
 		Socket::Packetvi packet;

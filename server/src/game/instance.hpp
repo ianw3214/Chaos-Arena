@@ -20,6 +20,14 @@
 #define PLAYER_DEFAULT_HEALTH       5
 #define PLAYER_DASH_TIME            300
 
+// Constants for calculating punch hitbox
+#define PLAYER_WIDTH            60
+#define PLAYER_HEIGHT           100
+#define PUNCH_WIDTH				70
+#define PUNCH_HEIGHT			80
+#define PUNCH_OFFSET_X			30
+#define PUNCH_OFFSET_Y          20
+
 // Constant variables
 const std::string connect_message = std::string("connect");
 

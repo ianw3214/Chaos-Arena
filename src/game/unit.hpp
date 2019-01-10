@@ -25,9 +25,17 @@
 #define UNIT_ANIM_DASH_RIGHT	9
 #define UNIT_ANIM_DASH_LEFT		10
 
-#define ATTACK_TIMER_DEFAULT	250
+#define ATTACK_TIMER_DEFAULT	220
 #define DAMAGE_TIMER_DEFAULT	400
 #define DASH_TIMER_DEFAULT		300
+
+#define PUNCH_SRC				"res/assets/units/punch.png"
+#define PUNCH_WIDTH				50
+#define PUNCH_HEIGHT			70
+#define PUNCH_OFFSET_X			20
+#define PUNCH_OFFSET_Y			30
+#define PUNCH_ANIM_RIGHT		0
+#define PUNCH_ANIM_LEFT			1
 
 class Map;
 
@@ -105,5 +113,10 @@ protected:
 
 	// The sprite of the unit
 	mutable AnimatedSprite sprite;
+
+	// Other sprites that may be needed
+	mutable AnimatedSprite punch_sprite;
+	int punch_x, punch_y;
+	bool punch_right;
 
 };

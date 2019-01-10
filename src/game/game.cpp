@@ -358,6 +358,7 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 				}
 			}
 			if (con_packet.vals[0] == PACKET_PLAYER_ATTACK) {
+				LOG("PACKET RECIEVED FOR PLAYER ATTACK");
 				int id = con_packet.vals[1];
 				bool face_right = con_packet.vals[3] == FACE_RIGHT ? true : false;
 				// TODO: (Ian) Set face_right of unit as well

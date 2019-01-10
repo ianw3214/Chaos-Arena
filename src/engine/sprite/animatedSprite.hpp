@@ -18,7 +18,7 @@ class AnimatedSprite : public Sprite {
 public:
 	
 	// Constructor of the animated sprite using the width/height of each animation frame
-	AnimatedSprite(const std::string& path = "", int frame_w = 0, int frame_h = 0);
+	AnimatedSprite(const std::string& path = "", int frame_w = 0, int frame_h = 0, bool play_once = false);
 	~AnimatedSprite();
 	
 	virtual void setSource(const std::string& name) override;
@@ -53,5 +53,9 @@ private:
 
 	// Queue of upcoming animations
 	mutable std::queue<AnimationState> animations;
+
+	// For animated sprites that are played once
+	bool play_once;
+	bool played;
 
 };

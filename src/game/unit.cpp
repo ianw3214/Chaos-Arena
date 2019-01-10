@@ -5,7 +5,7 @@
 
 #include "map.hpp"
 
-Unit::Unit(int x, int y, float scale) {
+Unit::Unit(int x, int y, float scale) : punch_sprite(PUNCH_SRC, PUNCH_WIDTH, PUNCH_HEIGHT, true) {
 	this->x = x;
 	this->y = y;
 	setScreenScale(scale);
@@ -18,6 +18,13 @@ Unit::Unit(int x, int y, float scale) {
 	// Set a default sprite
 	setSprite();
 	
+	// Initialize punch sprites
+	punch_sprite.addAnimation(0, 2);
+	punch_sprite.addAnimation(3, 5);
+	// Just play the sprite offscreen at first
+	punch_sprite.setPos(-100, -100);
+	punch_sprite.playAnimation(0);
+
 	return;
 }
 
@@ -64,6 +71,20 @@ void Unit::render(int cam_x, int cam_y) const {
 	int y = screen_y - static_cast<int>(screen_scale * PLAYER_HEIGHT) - cam_y;
 	sprite.setPos(x, y);
 	sprite.render();
+	int p_x = punch_x - cam_x + (punch_right ? 1 : -1) * static_cast<int>(screen_scale * PUNCH_OFFSET_X);
+	if (!punch_right) p_x -= static_cast<int>(screen_scale * PUNCH_WIDTH);
+	int p_y = punch_y - static_cast<int>(screen_scale * PLAYER_HEIGHT) - cam_y + static_cast<int>(screen_scale * PUNCH_OFFSET_Y);
+	punch_sprite.setPos(p_x, p_y);
+	punch_sprite.render();
+	{	// debugging
+		int x = screen_x - static_cast<int>(screen_scale * PLAYER_WIDTH) / 2 - cam_x;
+		if (face_right) x += static_cast<int>(screen_scale * 30);
+		else x -= static_cast<int>(screen_scale * 30) - static_cast<int>(screen_scale * PLAYER_WIDTH) + static_cast<int>(screen_scale * 70);
+		int y = screen_y - static_cast<int>(screen_scale * PLAYER_HEIGHT) - cam_y + static_cast<int>(screen_scale * 20);
+		int w = static_cast<int>(screen_scale * 70);
+		int h = static_cast<int>(screen_scale * 80);
+		Renderer::drawRectOutline({ x, y }, w, h);
+	}
 	return;
 }
 
@@ -177,6 +198,17 @@ void Unit::attack_primary() {
 				playAnimation(UNIT_ANIM_PUNCH_LEFT);
 				queueAnimation(UNIT_ANIM_IDLE_LEFT);
 			}
+			// Update position and play punch animation
+			punch_x = screen_x;
+			punch_y = screen_y;
+			if (face_right) {
+				punch_sprite.playAnimation(PUNCH_ANIM_RIGHT);
+				punch_right = true;
+			} else {
+				punch_sprite.playAnimation(PUNCH_ANIM_LEFT);
+				punch_right = false;
+			}
+			LOG("PLAYING PUNCH SPRITE ANIM");
 			// Set the animation timer
 			attacking = true;
 			attack_timer.reset();
@@ -405,6 +437,7 @@ void Unit::spriteDamaged() {
 void Unit::setScreenScale(float scale) {
 	screen_scale = scale;
 	sprite.setSize(static_cast<int>(scale * PLAYER_WIDTH), static_cast<int>(scale * PLAYER_HEIGHT));
+	punch_sprite.setSize(static_cast<int>(scale * PUNCH_WIDTH), static_cast<int>(scale * PUNCH_HEIGHT));
 }
 
 void Unit::calculateScreenPos() {

@@ -4,10 +4,12 @@
 #include "engine/textureManager/textureManager.hpp"
 #include "engine/renderer/renderer.hpp"
 
-AnimatedSprite::AnimatedSprite(const std::string & path, int frame_w, int frame_h) :
+AnimatedSprite::AnimatedSprite(const std::string & path, int frame_w, int frame_h, bool play_once) :
 	Sprite(path),
 	frame_index(0),
-	animation_index(0)
+	animation_index(0),
+	play_once(play_once),
+	played(false)
 {
 	// TODO: (Ian) Better errorh handling
 	if (path.size() == 0) return;
@@ -47,6 +49,8 @@ void AnimatedSprite::setFrameSize(int width, int height) {
 }
 
 void AnimatedSprite::render() {
+	// Don't replay animations that should only be played once
+	if (play_once && played) return;
 	// Render a magenta square if something goes wrong
 	if (frames.size() > 0 && TextureManager::getTexture(getName()) != nullptr) {
 		updateFrame();
@@ -70,6 +74,11 @@ void AnimatedSprite::updateFrame() {
 	if (clock.getTicks() > 33) {
 		frame_index++;
 		if (frame_index > frames[animation_index].y) {
+			// If we only play once, stop playing
+			if (play_once) {
+				played = true;
+				return;
+			}
 			// Determine if we are done with the current animation state
 			if (!animations.empty()) {
 				animations.front().loops--;
@@ -88,6 +97,8 @@ void AnimatedSprite::updateFrame() {
 }
 
 void AnimatedSprite::playAnimation(unsigned int animation, unsigned int loops) {
+	// Replay the animation even if it should only be played once
+	played = false;
 	// Make sure the animation is valid
 	// TODO: (Ian) Better erro handling
 	if (animation >= frames.size()) return;

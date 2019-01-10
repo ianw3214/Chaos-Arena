@@ -79,7 +79,6 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
             // Update the dashing property of the player
             ClientUnit * client = getClientById(packet3i.second);
             if (client) {
-                LOG ("START DASHING");
                 client->dashing = true;
                 client->dash_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
             }
@@ -107,12 +106,17 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
             if (packetvi.vals[2] == ATTACK_BASIC_PUNCH) {
                 if (packetvi.vals.size() < 6) return;
                 std::vector<int> collisions;
-                // TODO: (Ian) Get rid of magic numbers
-                int w = 60;
-                int h = 100;
-                // For now, just construct the rectangle to be the same as the player
-                int x = packetvi.vals[4] - 60 / 2;
-                int y = packetvi.vals[5] - 100;
+                int x = packetvi.vals[4] - PLAYER_WIDTH / 2;
+                if (packetvi.vals[3] == FACE_RIGHT) {
+                    LOG("FACE RIGHT PUNCH");
+                    x += PUNCH_OFFSET_X;
+                } else {
+                    LOG("FACE LEFT PUNCH");
+                    x -= PUNCH_OFFSET_X - PLAYER_WIDTH + PUNCH_WIDTH;
+                }
+                int y = packetvi.vals[5] - PLAYER_HEIGHT + PUNCH_OFFSET_Y;
+                int w = PUNCH_WIDTH;
+                int h = PUNCH_HEIGHT;
                 // TODO: (Ian) Calculate attacks in some other function maybe
                 // TODO: (Ian) Create attack class and store attacks in a queue
                 for (const ClientUnit& unit : clients) {
@@ -120,11 +124,15 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                     // If the unit is dead, ignore it
                     if (unit.m_health <= 0) continue;
                     // Check for collisions to see if any damage is dealt
-                    int u_x = unit.m_x - 60 / 2;
-                    int u_y = unit.m_y - 100;
+                    int u_x = unit.m_x - PLAYER_WIDTH / 2;
+                    int u_y = unit.m_y - PLAYER_HEIGHT;
                     if (x < u_x + 60 && x + w > u_x && y < u_y + 100 && y + h > u_y) {
                         collisions.push_back(unit.m_id);
                     }
+                }
+                // First broadcast the attack data back to the players
+                for (const ClientUnit& unit : clients) {
+                    if (unit.m_id != packetvi.vals[1]) network.sendPacketGuarantee(packet.data, unit.m_address);
                 }
                 // Update all units hit by the attack
                 for (int unit_id : collisions) {
@@ -139,11 +147,11 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                         int time_elapsed = (timestamp - client->dash_start).count();
                         if (time_elapsed > PLAYER_DASH_TIME) {
                             client->dashing = false;
-                            LOG("NOT DASHING ANYMORE, TAKES DAMAGE");
                         } else {
                             take_damage = false;
                         }
                     }
+                    // Then handle when the units take damage
                     if (take_damage) {
                         // Damage the unit and send a kill packet if it dies
                         if (--(client->m_health) <= 0) {
@@ -155,8 +163,6 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                         }
                         // Send the damaged packet to all clients
                         for (const ClientUnit& unit : clients) {
-                            // First broadcast the attack data back to the players
-                            if (unit.m_id != packetvi.vals[1]) network.sendPacketGuarantee(packet.data, unit.m_address);
                             // Send packets based on whether the unit died or not
                             if (unit_dead) {
                                 Socket::Packet2i death_packet;

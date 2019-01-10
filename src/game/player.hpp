@@ -22,7 +22,7 @@ class Map;
 #define HEART_WIDTH				50
 #define HEART_HEIGHT			50
 
-#define RESPAWN_TIMER			5000
+#define RESPAWN_TIMER			4000
 
 #define KILLS_SRC				"res/assets/UI/kills.png"
 #define DEATHS_SRC				"res/assets/UI/deaths.png"
