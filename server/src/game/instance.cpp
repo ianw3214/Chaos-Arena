@@ -75,6 +75,19 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                 }
             }
         }
+        if (packet3i.first == PACKET_PLAYER_DASH) {
+            // Update the dashing property of the player
+            ClientUnit * client = getClientById(packet3i.second);
+            if (client) {
+                LOG ("START DASHING");
+                client->dashing = true;
+                client->dash_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+            }
+            // Just forward the packet to the other players
+            for (const ClientUnit& client : clients) {
+                network.sendPacketGuarantee(packet.data, client.m_address);
+            }
+        }
     }
     if (Socket::getPacketType(packet.data) == PACKET_VI) {
         Socket::Packetvi packetvi = Socket::convertPacketvi(packet.data);
@@ -119,28 +132,43 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                     ClientUnit * client = getClientById(unit_id);
                     if (!client) return;    // ERROR
                     bool unit_dead = false;
-                    if (--(client->m_health) <= 0) {
-                        unit_dead = true;
-                        // If a unit died, give the player a kill
-                        Socket::Packet1i kill_packet;
-                        kill_packet.val = PACKET_PLAYER_KILL;
-                        network.sendPacketGuarantee(kill_packet, packet.address);
-                    }
-                    // Send the damaged packet to all clients
-                    for (const ClientUnit& unit : clients) {
-                        // First broadcast the attack data back to the players
-                        if (unit.m_id != packetvi.vals[1]) network.sendPacketGuarantee(packet.data, unit.m_address);
-                        // Send packets based on whether the unit died or not
-                        if (unit_dead) {
-                            Socket::Packet2i death_packet;
-                            death_packet.first = PACKET_UNIT_DEAD;
-                            death_packet.second = unit_id;
-                            network.sendPacketGuarantee(Socket::createBasicPacket(death_packet), unit.m_address);
+                    // Ignore the collision if the unit is dashing
+                    bool take_damage = true;
+                    if (client->dashing) {
+                        std::chrono::milliseconds timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+                        int time_elapsed = (timestamp - client->dash_start).count();
+                        if (time_elapsed > PLAYER_DASH_TIME) {
+                            client->dashing = false;
+                            LOG("NOT DASHING ANYMORE, TAKES DAMAGE");
                         } else {
-                            Socket::Packet2i collision;
-                            collision.first = PACKET_UNIT_DAMAGED;
-                            collision.second = unit_id;
-                            network.sendPacketGuarantee(Socket::createBasicPacket(collision), unit.m_address);
+                            take_damage = false;
+                        }
+                    }
+                    if (take_damage) {
+                        // Damage the unit and send a kill packet if it dies
+                        if (--(client->m_health) <= 0) {
+                            unit_dead = true;
+                            // If a unit died, give the player a kill
+                            Socket::Packet1i kill_packet;
+                            kill_packet.val = PACKET_PLAYER_KILL;
+                            network.sendPacketGuarantee(kill_packet, packet.address);
+                        }
+                        // Send the damaged packet to all clients
+                        for (const ClientUnit& unit : clients) {
+                            // First broadcast the attack data back to the players
+                            if (unit.m_id != packetvi.vals[1]) network.sendPacketGuarantee(packet.data, unit.m_address);
+                            // Send packets based on whether the unit died or not
+                            if (unit_dead) {
+                                Socket::Packet2i death_packet;
+                                death_packet.first = PACKET_UNIT_DEAD;
+                                death_packet.second = unit_id;
+                                network.sendPacketGuarantee(Socket::createBasicPacket(death_packet), unit.m_address);
+                            } else {
+                                Socket::Packet2i collision;
+                                collision.first = PACKET_UNIT_DAMAGED;
+                                collision.second = unit_id;
+                                network.sendPacketGuarantee(Socket::createBasicPacket(collision), unit.m_address);
+                            }
                         }
                     }
                 }
@@ -155,7 +183,7 @@ void Instance::addNewClient(Socket::Address address) {
     while(getClientById(clientId)) {
         clientId = rand() % 10000;
     }
-    clients.push_back({clientId, address, false, 0, 0, PLAYER_DEFAULT_HEALTH});
+    clients.push_back({clientId, address, false, 0, 0, PLAYER_DEFAULT_HEALTH, false});
     Socket::Packet1i response = { clientId };
     Socket::BasicPacket con_response = Socket::createBasicPacket(response);
     network.sendPacketGuarantee(con_response, address);

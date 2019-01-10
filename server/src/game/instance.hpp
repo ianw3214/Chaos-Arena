@@ -15,9 +15,10 @@
 #define LOG(x) std::cout << "[LOG]: " << x << std::endl;
 #define ERR(x) std::cerr << "[ERR]: " << x << std::endl;
 
-#define PLAYER_POS_SEND_FREQUENCY   100
+#define PLAYER_POS_SEND_FREQUENCY   80
 
 #define PLAYER_DEFAULT_HEALTH       5
+#define PLAYER_DASH_TIME            300
 
 // Constant variables
 const std::string connect_message = std::string("connect");
@@ -32,6 +33,9 @@ struct ClientUnit {
     int m_x;
     int m_y;
     int m_health;
+
+    bool dashing;
+    std::chrono::milliseconds dash_start;
 };
 
 // TODO: (Ian) Create a logger class for server logging to file

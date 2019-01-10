@@ -80,7 +80,7 @@ void Game::init(Interface * net) {
 	map.clearMapData();
 
 	// Temporary debugging code
-	setScreenScale(2.f);
+	setScreenScale(1.5f);
 	
 	// Start the thread to send connection packets
 	// TODO: (Ian) Join this thread somewhere maybe
@@ -113,13 +113,15 @@ void Game::update(int delta) {
 				running = false;
 			}
 		}
+		if (e.type == SDL_WINDOWEVENT) {
+			if (e.window.event == SDL_WINDOWEVENT_CLOSE) {
+				running = false;
+			}
+		}
 		std::lock_guard<std::mutex> lock(player_mutex);
 		// Handle keyboard state
 		const Uint8 * state = SDL_GetKeyboardState(NULL);
 		player.handleEvent(e);
-		if (state[SDL_SCANCODE_SPACE]) {
-			map.generate();
-		}
 	}
 	if (ready) {
 		player.update(delta, UNIT_PER_TILE, map);
@@ -284,6 +286,18 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 					packetsRecieved++;
 					sendRecievedPackets();
 					spawnPointRecieved = true;
+				}
+			}
+			if (con_packet.first == PACKET_PLAYER_DASH) {
+				Direction dir = Direction::RIGHT;
+				if (con_packet.third == 0) dir = Direction::UP;
+				if (con_packet.third == 1) dir = Direction::DOWN;
+				if (con_packet.third == 2) dir = Direction::RIGHT;
+				if (con_packet.third == 3) dir = Direction::LEFT;
+				for (auto it = units.begin(); it != units.end(); ++it) {
+					if ((*it).first == con_packet.second) {
+						(*it).second.dash(dir);
+					}
 				}
 			}
 		}

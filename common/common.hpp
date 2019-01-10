@@ -23,15 +23,16 @@ typedef char PacketType;
 
 #define PACKET_PLAYER_POS       8
 #define PACKET_PLAYER_ATTACK    9
+#define PACKET_PLAYER_DASH      10
 
 // The defines for the attacks are in a separate file
 #include "attacks.hpp"
 
-#define PACKET_UNIT_DAMAGED     10
-#define PACKET_UNIT_DEAD        11
-#define PACKET_UNIT_RESPAWN     12
+#define PACKET_UNIT_DAMAGED     11
+#define PACKET_UNIT_DEAD        12
+#define PACKET_UNIT_RESPAWN     13
 
-#define PACKET_PLAYER_KILL      13
+#define PACKET_PLAYER_KILL      14
 
 // Helper function for writing data + updating pointer for packets
 template<class T>

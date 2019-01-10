@@ -33,13 +33,15 @@ void Unit::setSprite(const std::string & name, int frame_w, int frame_h) {
 	// TODO: (Ian) load this in from a file
 	addAnimation(0, 9);
 	addAnimation(10, 19);
-	addAnimation(20, 29);
-	addAnimation(30, 39);
+	addAnimation(20, 25);
+	addAnimation(30, 35);
 	addAnimation(40, 49);
 	addAnimation(50, 59);
 	addAnimation(60, 69);
 	addAnimation(70, 79);
 	addAnimation(80, 89);
+	addAnimation(90, 99);
+	addAnimation(100, 109);
 }
 
 void Unit::addAnimation(unsigned int start, unsigned int end) {
@@ -155,11 +157,18 @@ void Unit::attack_primary() {
 			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 				attacking = false;
 			}
-		} else if (damaged) {
+		}
+		if (damaged) {
 			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
 				damaged = false;
 			}
-		} else {
+		}
+		if (dashing) {
+			if (dash_timer.getTicks() > DASH_TIMER_DEFAULT) {
+				dashing = false;
+			}
+		}
+		if (!attacking && !damaged && !dashing) {
 			// Play the attack animation
 			if (face_right) {
 				playAnimation(UNIT_ANIM_PUNCH_RIGHT);
@@ -171,6 +180,42 @@ void Unit::attack_primary() {
 			// Set the animation timer
 			attacking = true;
 			attack_timer.reset();
+		}
+	}
+}
+
+void Unit::dash(Direction direction) {
+	if (!dead) {
+		if (attacking) {
+			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+				attacking = false;
+			}
+		}
+		if (damaged) {
+			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+				damaged = false;
+			}
+		}
+		if (dashing) {
+			if (dash_timer.getTicks() > DASH_TIMER_DEFAULT) {
+				dashing = false;
+			}
+		}
+		if (!attacking && !damaged && !dashing) {
+			dash_direction = direction;
+			if (dash_direction == Direction::LEFT) face_right = false;
+			if (dash_direction == Direction::RIGHT) face_right = true;
+			// Play the dash animation
+			if (face_right) {
+				playAnimation(UNIT_ANIM_DASH_RIGHT);
+				queueAnimation(UNIT_ANIM_IDLE_RIGHT);
+			} else {
+				playAnimation(UNIT_ANIM_DASH_LEFT);
+				queueAnimation(UNIT_ANIM_IDLE_LEFT);
+			}
+			// Set the animation timer
+			dashing = true;
+			dash_timer.reset();
 		}
 	}
 }
@@ -193,17 +238,37 @@ bool Unit::isAttacking() {
 	return attacking;
 }
 
+bool Unit::isDashing() {
+	if (dashing) {
+		if (dash_timer.getTicks() > DASH_TIMER_DEFAULT) {
+			dashing = false;
+		}
+	}
+	return dashing;
+}
+
+Direction Unit::dashDirection() const {
+	return dash_direction;
+}
+
 void Unit::spriteMoveUp() {
 	if (!dead) {
 		if (attacking) {
 			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 				attacking = false;
 			}
-		} else if (damaged) {
+		}
+		if (damaged) {
 			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
 				damaged = false;
 			}
-		} else {
+		}
+		if (dashing) {
+			if (dash_timer.getTicks() > DASH_TIMER_DEFAULT) {
+				dashing = false;
+			}
+		}
+		if (!attacking && !damaged && !dashing) {
 			// Play the run animation based on the direction the unit is facing
 			if (face_right) {
 				playAnimation(UNIT_ANIM_RUN_RIGHT, false);
@@ -220,11 +285,18 @@ void Unit::spriteMoveDown() {
 			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 				attacking = false;
 			}
-		} else if (damaged) {
+		}
+		if (damaged) {
 			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
 				damaged = false;
 			}
-		} else {
+		}
+		if (dashing) {
+			if (dash_timer.getTicks() > DASH_TIMER_DEFAULT) {
+				dashing = false;
+			}
+		}
+		if (!attacking && !damaged && !dashing) {
 			// Play the run animation based on the direction the unit is facing
 			if (face_right) {
 				playAnimation(UNIT_ANIM_RUN_RIGHT, false);
@@ -241,11 +313,18 @@ void Unit::spriteMoveRight() {
 			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 				attacking = false;
 			}
-		} else if (damaged) {
+		}
+		if (damaged) {
 			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
 				damaged = false;
 			}
-		} else {
+		}
+		if (dashing) {
+			if (dash_timer.getTicks() > DASH_TIMER_DEFAULT) {
+				dashing = false;
+			}
+		}
+		if (!attacking && !damaged && !dashing) {
 			// Make the sprite face right and play the right animation
 			face_right = true;
 			playAnimation(UNIT_ANIM_RUN_RIGHT, false);
@@ -259,11 +338,18 @@ void Unit::spriteMoveLeft() {
 			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 				attacking = false;
 			}
-		} else if (damaged) {
+		}
+		if (damaged) {
 			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
 				damaged = false;
 			}
-		} else {
+		}
+		if (dashing) {
+			if (dash_timer.getTicks() > DASH_TIMER_DEFAULT) {
+				dashing = false;
+			}
+		}
+		if (!attacking && !damaged && !dashing) {
 			// Make the sprite face left and play the right animation
 			face_right = false;
 			playAnimation(UNIT_ANIM_RUN_LEFT, false);
@@ -277,11 +363,18 @@ void Unit::spriteStopMove() {
 			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 				attacking = false;
 			}
-		} else if (damaged) {
+		}
+		if (damaged) {
 			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
 				damaged = false;
 			}
-		} else {
+		}
+		if (dashing) {
+			if (dash_timer.getTicks() > DASH_TIMER_DEFAULT) {
+				dashing = false;
+			}
+		}
+		if (!attacking && !damaged && !dashing) {
 			// Play the idle animation based on the direction the unit is facing
 			// Play the run animation based on the direction the unit is facing
 			if (face_right) {

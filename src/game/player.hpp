@@ -10,7 +10,8 @@
 class Map;
 
 // TODO: (Ian) Figure out a better way of storing this
-#define PLAYER_SPEED		8.f
+#define PLAYER_SPEED	8.f
+#define DASH_SPEED		16.f
 
 #define PLAYER_SPRITE	"res/assets/units/player.png"
 #define PLAYER_FRAME_W	60
@@ -59,6 +60,7 @@ public:
 	// Player attack methods
 	void damaged();
 	void attack_primary();
+	void dash();
 
 private:
 

@@ -22,9 +22,12 @@
 #define UNIT_ANIM_DAMAGE_RIGHT	6
 #define UNIT_ANIM_DAMAGE_LEFT	7
 #define UNIT_ANIM_DEAD			8
+#define UNIT_ANIM_DASH_RIGHT	9
+#define UNIT_ANIM_DASH_LEFT		10
 
-#define ATTACK_TIMER_DEFAULT	500
+#define ATTACK_TIMER_DEFAULT	250
 #define DAMAGE_TIMER_DEFAULT	400
+#define DASH_TIMER_DEFAULT		300
 
 class Map;
 
@@ -54,6 +57,7 @@ public:
 	// Attack functions just handle attack visuals
 	// For now, all units have the same attacks
 	void attack_primary();
+	void dash(Direction direction);
 
 	// Getter methods
 	int getX() const { return x; }
@@ -64,6 +68,8 @@ public:
 	bool isFaceRight() const { return face_right; }
 	bool isDamaged();
 	bool isAttacking();
+	bool isDashing();
+	Direction dashDirection() const;
 
 	// Sprite methods
 	void spriteMoveUp();
@@ -85,12 +91,17 @@ protected:
 	int screen_y;
 	float screen_scale;
 
+	// Unit properties
 	bool dead;
 	bool face_right;
+	// Timers
 	bool attacking;
 	Clock attack_timer;
 	bool damaged;
 	Clock damaged_timer;
+	bool dashing;
+	Direction dash_direction;
+	Clock dash_timer;
 
 	// The sprite of the unit
 	mutable AnimatedSprite sprite;

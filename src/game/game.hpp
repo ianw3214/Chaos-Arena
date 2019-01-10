@@ -18,7 +18,7 @@ class Interface;
 #define PACKETS_PER_SEC	15
 
 // Helper struct to sync player movement to the server
-#define SERVER_INTERVAL	100.f
+#define SERVER_INTERVAL	80.f
 struct UnitMovement {
 	int start_x, start_y;
 	int goal_x, goal_y;

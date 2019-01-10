@@ -93,7 +93,10 @@ void Player::handleEvent(SDL_Event & e) {
 		} break;
 		case SDLK_z: {
 			attack_primary();
-		}
+		} break;
+		case SDLK_x: {
+			dash();
+		} break;
 		default: {
 			// Do nothing...
 		} break;
@@ -129,13 +132,20 @@ void Player::handleEvent(SDL_Event & e) {
 }
 
 void Player::update(int delta, int units_per_tile, const Map & map) {
-	if (!unit->isAttacking() && !unit->isDamaged() && !dead) {
+	if (!unit->isAttacking() && !unit->isDamaged() && !unit->isDashing() && !dead) {
 		if (move_up)	unit->move(Direction::UP, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
 		if (move_down)  unit->move(Direction::DOWN, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
 		if (move_right) unit->move(Direction::RIGHT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
 		if (move_left)  unit->move(Direction::LEFT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
 		// Set the player to an idle state if there is no movement
 		if (!move_up && !move_down && !move_right && !move_left) unit->spriteStopMove();
+	}
+	// Update dashing movement
+	if (unit->isDashing()) {
+		if (unit->dashDirection() == Direction::UP) unit->move(Direction::UP, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
+		if (unit->dashDirection() == Direction::DOWN) unit->move(Direction::DOWN, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
+		if (unit->dashDirection() == Direction::RIGHT) unit->move(Direction::RIGHT, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
+		if (unit->dashDirection() == Direction::LEFT) unit->move(Direction::LEFT, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
 	}
 	// Check whether to send a respawn request depending on death time
 	if (dead) {
@@ -187,7 +197,7 @@ void Player::damaged() {
 }
 
 void Player::attack_primary() {
-	if (!unit->isAttacking() && !unit->isDamaged()) {
+	if (!unit->isAttacking() && !unit->isDamaged() && !unit->isDashing()) {
 		// Play the animation
 		unit->attack_primary();
 		// Send a packet to the server
@@ -198,6 +208,40 @@ void Player::attack_primary() {
 		packet.vals.push_back(unit->isFaceRight() ? FACE_RIGHT : FACE_LEFT);
 		packet.vals.push_back(unit->getX());
 		packet.vals.push_back(unit->getY());
+		addPacket(Socket::createBasicPacket(packet));
+	}
+}
+
+void Player::dash() {
+	if (!unit->isAttacking() && !unit->isDamaged() && !unit->isDashing()) {
+		// Play the animation
+		if (move_right)					unit->dash(Direction::RIGHT);
+		else if (move_left)				unit->dash(Direction::LEFT);
+		else if (move_up)				unit->dash(Direction::UP);
+		else if (move_down)				unit->dash(Direction::DOWN);
+		else if (unit->isFaceRight())	unit->dash(Direction::RIGHT);
+		else							unit->dash(Direction::LEFT);
+		// Send a packet to the server
+		Socket::Packet3i packet;
+		packet.first = PACKET_PLAYER_DASH;
+		packet.second = player_id;
+		switch (unit->dashDirection()) {
+		case Direction::UP: {
+			packet.third = 0;
+		} break;
+		case Direction::DOWN: {
+			packet.third = 1;
+		} break;
+		case Direction::RIGHT: {
+			packet.third = 2;
+		} break;
+		case Direction::LEFT: {
+			packet.third = 3;
+		} break;
+		default: {
+			packet.third = 0;
+		} break;
+		}
 		addPacket(Socket::createBasicPacket(packet));
 	}
 }
