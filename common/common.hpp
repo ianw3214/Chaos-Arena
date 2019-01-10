@@ -31,6 +31,8 @@ typedef char PacketType;
 #define PACKET_UNIT_DEAD        11
 #define PACKET_UNIT_RESPAWN     12
 
+#define PACKET_PLAYER_KILL      13
+
 // Helper function for writing data + updating pointer for packets
 template<class T>
 void writeData(const T& data, char*& ptr) {

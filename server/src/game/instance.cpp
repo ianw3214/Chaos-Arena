@@ -120,10 +120,12 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                     if (!client) return;    // ERROR
                     bool unit_dead = false;
                     if (--(client->m_health) <= 0) {
-                        // TODO: Death timer & respawn
                         unit_dead = true;
+                        // If a unit died, give the player a kill
+                        Socket::Packet1i kill_packet;
+                        kill_packet.val = PACKET_PLAYER_KILL;
+                        network.sendPacketGuarantee(kill_packet, packet.address);
                     }
-                    LOG("UNIT HEALTH: " << client->m_health << " - UNIT ID: " << client->m_id);
                     // Send the damaged packet to all clients
                     for (const ClientUnit& unit : clients) {
                         // First broadcast the attack data back to the players

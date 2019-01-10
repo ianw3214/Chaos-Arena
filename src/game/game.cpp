@@ -195,7 +195,6 @@ void Game::render() {
 		// TODO: (Ian) Implement full loading screen
 		Renderer::drawTexture({ Engine::getScreenWidth() / 2 - 64, Engine::getScreenHeight() / 2 - 64 }, 128, 128, *TextureManager::getTexture("res/assets/loading.png"));
 	}
-
 }
 
 bool Game::isRunning() {
@@ -232,6 +231,10 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 				map.setTileSheet(TILE_PATH, TILE_SRC_W, TILE_SRC_H);
 				ready = true;
 				packet_delta = packet_last_tick = SDL_GetTicks();
+			}
+			if (con_packet.val == PACKET_PLAYER_KILL) {
+				// Give the player a kill
+				player.addKill();
 			}
 		}
 		if (Socket::getPacketType(packet) == PACKET_2I) {

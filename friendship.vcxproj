@@ -175,6 +175,7 @@
     <ClInclude Include="src\game\gameUtils.hpp" />
     <ClInclude Include="src\game\map.hpp" />
     <ClInclude Include="src\game\network\interface.hpp" />
+    <ClInclude Include="src\game\number\numberSprite.hpp" />
     <ClInclude Include="src\game\player.hpp" />
     <ClInclude Include="src\game\unit.hpp" />
     <ClInclude Include="src\menu\menu.hpp" />

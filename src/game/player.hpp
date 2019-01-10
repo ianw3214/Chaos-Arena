@@ -23,6 +23,9 @@ class Map;
 
 #define RESPAWN_TIMER			5000
 
+#define KILLS_SRC				"res/assets/UI/kills.png"
+#define DEATHS_SRC				"res/assets/UI/deaths.png"
+
 class Player {
 
 public:
@@ -36,6 +39,7 @@ public:
 	// Player networking code
 	bool hasPacket() const;
 	Socket::BasicPacket getNextPacket();
+	void addKill();
 
 	// Unit interactions
 	int getX() const;
@@ -59,6 +63,7 @@ public:
 private:
 
 	int player_id;
+
 	float screen_scale;
 
 	// The player class acts as a controller for a unit
@@ -67,6 +72,8 @@ private:
 	// Player properties
 	int health;
 	bool dead;
+	int kills;
+	int deaths;
 
 	// Timers
 	bool respawn_sent;

@@ -1,11 +1,12 @@
 #include "player.hpp"
 
-#include "map.hpp"
-
 #include "utils/utils.hpp"
 #include "socket.hpp"
 
-Player::Player(int x, int y) : health(DEFAULT_PLAYER_HEALTH), dead(false) {
+#include "map.hpp"
+#include "number/numberSprite.hpp"
+
+Player::Player(int x, int y) : health(DEFAULT_PLAYER_HEALTH), dead(false), kills(0), deaths(0) {
 	screen_scale = 1.f;
 	// Initialize key flags
 	move_up = false;
@@ -41,6 +42,10 @@ Socket::BasicPacket Player::getNextPacket() {
 	Socket::BasicPacket temp = packet_queue.front();
 	packet_queue.pop();
 	return temp;
+}
+
+void Player::addKill() {
+	kills++;
 }
 
 int Player::getX() const {
@@ -152,11 +157,17 @@ void Player::renderUI() {
 		int x = i * HEART_WIDTH;
 		Renderer::drawTexture({ x, y }, HEART_WIDTH, HEART_HEIGHT, HEALTH_SPRITE);
 	}
+	// Render player kills
+	Renderer::drawTexture(Vec2i{ 700, 10 }, 250, 60, KILLS_SRC);
+	Renderer::drawTexture(Vec2i{ 700, 70 }, 300, 60, DEATHS_SRC);
+	Number::renderNumber(kills, 1200, 10);
+	Number::renderNumber(deaths, 1200, 70);
 }
 
 void Player::setDead() {
 	health = 0;
 	dead = true;
+	deaths++;
 	unit->setDead();
 	respawn_timer.reset();
 	respawn_sent = false;
