@@ -10,6 +10,7 @@ Unit::Unit(int x, int y, float scale) {
 	this->y = y;
 	setScreenScale(scale);
 	calculateScreenPos();
+	dead = false;
 	face_right = true;
 	attacking = false;
 	damaged = false;
@@ -38,6 +39,7 @@ void Unit::setSprite(const std::string & name, int frame_w, int frame_h) {
 	addAnimation(50, 59);
 	addAnimation(60, 69);
 	addAnimation(70, 79);
+	addAnimation(80, 89);
 }
 
 void Unit::addAnimation(unsigned int start, unsigned int end) {
@@ -135,133 +137,169 @@ void Unit::move(Direction dir, int distance, const Map & map) {
 	return;
 }
 
+void Unit::setDead() {
+	dead = true;
+	sprite.playAnimation(UNIT_ANIM_DEAD);
+}
+
 void Unit::attack_primary() {
-	if (attacking) {
-		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
-			attacking = false;
-		}
-	} else if (damaged) {
-		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
-			damaged = false;
-		}
-	} else {
-		// Play the attack animation
-		if (face_right) {
-			playAnimation(UNIT_ANIM_PUNCH_RIGHT);
-			queueAnimation(UNIT_ANIM_IDLE_RIGHT);
+	if (!dead) {
+		if (attacking) {
+			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+				attacking = false;
+			}
+		} else if (damaged) {
+			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+				damaged = false;
+			}
 		} else {
-			playAnimation(UNIT_ANIM_PUNCH_LEFT);
-			queueAnimation(UNIT_ANIM_IDLE_LEFT);
+			// Play the attack animation
+			if (face_right) {
+				playAnimation(UNIT_ANIM_PUNCH_RIGHT);
+				queueAnimation(UNIT_ANIM_IDLE_RIGHT);
+			} else {
+				playAnimation(UNIT_ANIM_PUNCH_LEFT);
+				queueAnimation(UNIT_ANIM_IDLE_LEFT);
+			}
+			// Set the animation timer
+			attacking = true;
+			attack_timer.reset();
 		}
-		// Set the animation timer
-		attacking = true;
-		attack_timer.reset();
 	}
 }
 
-void Unit::spriteMoveUp() {
+bool Unit::isDamaged() {
+	if (damaged) {
+		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+			damaged = false;
+		}
+	}
+	return damaged;
+}
+
+bool Unit::isAttacking() {
 	if (attacking) {
 		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
 			attacking = false;
 		}
-	} else if (damaged) {
-		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
-			damaged = false;
-		}
-	} else {
-		// Play the run animation based on the direction the unit is facing
-		if (face_right) {
-			playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+	}
+	return attacking;
+}
+
+void Unit::spriteMoveUp() {
+	if (!dead) {
+		if (attacking) {
+			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+				attacking = false;
+			}
+		} else if (damaged) {
+			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+				damaged = false;
+			}
 		} else {
-			playAnimation(UNIT_ANIM_RUN_LEFT, false);
+			// Play the run animation based on the direction the unit is facing
+			if (face_right) {
+				playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+			} else {
+				playAnimation(UNIT_ANIM_RUN_LEFT, false);
+			}
 		}
 	}
 }
 
 void Unit::spriteMoveDown() {
-	if (attacking) {
-		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
-			attacking = false;
-		}
-	} else if (damaged) {
-		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
-			damaged = false;
-		}
-	} else {
-		// Play the run animation based on the direction the unit is facing
-		if (face_right) {
-			playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+	if (!dead) {
+		if (attacking) {
+			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+				attacking = false;
+			}
+		} else if (damaged) {
+			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+				damaged = false;
+			}
 		} else {
-			playAnimation(UNIT_ANIM_RUN_LEFT, false);
+			// Play the run animation based on the direction the unit is facing
+			if (face_right) {
+				playAnimation(UNIT_ANIM_RUN_RIGHT, false);
+			} else {
+				playAnimation(UNIT_ANIM_RUN_LEFT, false);
+			}
 		}
 	}
 }
 
 void Unit::spriteMoveRight() {
-	if (attacking) {
-		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
-			attacking = false;
+	if (!dead) {
+		if (attacking) {
+			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+				attacking = false;
+			}
+		} else if (damaged) {
+			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+				damaged = false;
+			}
+		} else {
+			// Make the sprite face right and play the right animation
+			face_right = true;
+			playAnimation(UNIT_ANIM_RUN_RIGHT, false);
 		}
-	} else if (damaged) {
-		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
-			damaged = false;
-		}
-	} else {
-		// Make the sprite face right and play the right animation
-		face_right = true;
-		playAnimation(UNIT_ANIM_RUN_RIGHT, false);
 	}
 }
 
 void Unit::spriteMoveLeft() {
-	if (attacking) {
-		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
-			attacking = false;
+	if (!dead) {
+		if (attacking) {
+			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+				attacking = false;
+			}
+		} else if (damaged) {
+			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+				damaged = false;
+			}
+		} else {
+			// Make the sprite face left and play the right animation
+			face_right = false;
+			playAnimation(UNIT_ANIM_RUN_LEFT, false);
 		}
-	} else if (damaged) {
-		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
-			damaged = false;
-		}
-	} else {
-		// Make the sprite face left and play the right animation
-		face_right = false;
-		playAnimation(UNIT_ANIM_RUN_LEFT, false);
 	}
 }
 
 void Unit::spriteStopMove() {
-	if (attacking) {
-		if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
-			attacking = false;
-		}
-	} else if (damaged) {
-		if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
-			damaged = false;
-		}
-	} else {
-		// Play the idle animation based on the direction the unit is facing
-		// Play the run animation based on the direction the unit is facing
-		if (face_right) {
-			playAnimation(UNIT_ANIM_IDLE_RIGHT, false);
+	if (!dead) {
+		if (attacking) {
+			if (attack_timer.getTicks() > ATTACK_TIMER_DEFAULT) {
+				attacking = false;
+			}
+		} else if (damaged) {
+			if (damaged_timer.getTicks() > DAMAGE_TIMER_DEFAULT) {
+				damaged = false;
+			}
 		} else {
-			playAnimation(UNIT_ANIM_IDLE_LEFT, false);
+			// Play the idle animation based on the direction the unit is facing
+			// Play the run animation based on the direction the unit is facing
+			if (face_right) {
+				playAnimation(UNIT_ANIM_IDLE_RIGHT, false);
+			} else {
+				playAnimation(UNIT_ANIM_IDLE_LEFT, false);
+			}
 		}
 	}
 }
 
 void Unit::spriteDamaged() {
-	LOG("SPRITE DAMAGED!");
-	// Play the danaged animation
-	if (face_right) {
-		playAnimation(UNIT_ANIM_DAMAGE_RIGHT);
-		queueAnimation(UNIT_ANIM_IDLE_RIGHT);
-	} else {
-		playAnimation(UNIT_ANIM_DAMAGE_LEFT);
-		queueAnimation(UNIT_ANIM_IDLE_LEFT);
+	if (!dead) {
+		// Play the danaged animation
+		if (face_right) {
+			playAnimation(UNIT_ANIM_DAMAGE_RIGHT);
+			queueAnimation(UNIT_ANIM_IDLE_RIGHT);
+		} else {
+			playAnimation(UNIT_ANIM_DAMAGE_LEFT);
+			queueAnimation(UNIT_ANIM_IDLE_LEFT);
+		}
+		// Set the animation timer
+		damaged = true;
+		damaged_timer.reset();
 	}
-	// Set the animation timer
-	damaged = true;
-	damaged_timer.reset();
 }
 
 void Unit::setScreenScale(float scale) {

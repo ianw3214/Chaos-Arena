@@ -28,6 +28,7 @@ typedef char PacketType;
 #include "attacks.hpp"
 
 #define PACKET_UNIT_DAMAGED     10
+#define PACKET_UNIT_DEAD        11
 
 // Helper function for writing data + updating pointer for packets
 template<class T>
@@ -153,6 +154,7 @@ namespace Socket {
         const char * ptr = packet.message;
         unsigned int size;
         getData(ptr, size);
+        result.vals.reserve(size);
         for (unsigned int i = 0; i < size; ++i) {
             int data;
             getData(ptr, data);

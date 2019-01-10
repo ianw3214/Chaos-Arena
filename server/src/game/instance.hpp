@@ -23,6 +23,8 @@ struct ClientUnit {
     int m_id;
     Socket::Address m_address;
 
+    bool ready;
+
     // In game player properties
     int m_x;
     int m_y;
@@ -43,12 +45,12 @@ private:
     // NOTE: Using an unordered map may have better performance because we need lookup
     std::list<ClientUnit> clients;
     void addNewClient(Socket::Address address);
+    ClientUnit * getClientById(int id);
 
     // Game state variables
     Map map;
 
     Interface& network;
-
 
     // Thread functions
     void clientSender();

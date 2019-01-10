@@ -3,6 +3,8 @@
 #include "delaunator.hpp"
 #include <cmath>
 
+#include <iostream>
+
 // Helper function to generate a random point in a circle
 const double pi = 3.1415926535897;
 Vec2i getRandomPointInCircle(int radius) {
@@ -80,11 +82,11 @@ void Map::generate() {
 	generateSpawnRoom();
 
 	// Make sure there are no duplicates otherwise everything breaks down
-	std::vector<int> room_remove_indices;
-	for (int i = 0; i < main_rooms.size(); ++i) {
-		for (int j = i + 1; j < main_rooms.size(); ++j) {
+	std::vector<unsigned int> room_remove_indices;
+	for (unsigned int i = 0; i < main_rooms.size(); ++i) {
+		for (unsigned int j = i + 1; j < main_rooms.size(); ++j) {
 			bool rem = false;
-			for (int k : room_remove_indices) if (j == k) rem = true;
+			for (unsigned int k : room_remove_indices) if (j == k) rem = true;
 			if (rem) continue;
 			const Room& r1 = main_rooms[i];
 			const Room& r2 = main_rooms[j];
@@ -94,11 +96,11 @@ void Map::generate() {
 			}
 		}
 	}
-	std::vector<int> hall_remove_indices;
-	for (int i = 0; i < hallways.size(); ++i) {
-		for (int j = i + 1; j < hallways.size(); ++j) {
+	std::vector<unsigned int> hall_remove_indices;
+	for (unsigned int i = 0; i < hallways.size(); ++i) {
+		for (unsigned int j = i + 1; j < hallways.size(); ++j) {
 			bool rem = false;
-			for (int k : hall_remove_indices) if (j == k) rem = true;
+			for (unsigned int k : hall_remove_indices) if (j == k) rem = true;
 			if (rem) continue;
 			const Edge& e1 = hallways[i];
 			const Edge& e2 = hallways[j];
@@ -109,11 +111,11 @@ void Map::generate() {
 		}
 	}
 	// Go by reverse so that the indices remain correct
-	for (int i = room_remove_indices.size() - 1; i >= 0; ++i) {
-		main_rooms.erase(main_rooms.begin() + i);
+	for (int i = room_remove_indices.size() - 1; i >= 0; --i) {
+		main_rooms.erase(main_rooms.begin() + room_remove_indices[i]);
 	}
-	for (int i = hall_remove_indices.size() - 1; i >= 0; ++i) {
-		hallways.erase(hallways.begin() + i);
+	for (int i = hall_remove_indices.size() - 1; i >= 0; --i) {
+		hallways.erase(hallways.begin() + hall_remove_indices[i]);
 	}
 
 }

@@ -5,7 +5,7 @@
 #include "utils/utils.hpp"
 #include "socket.hpp"
 
-Player::Player(int x, int y) : health(DEFAULT_PLAYER_HEALTH) {
+Player::Player(int x, int y) : health(DEFAULT_PLAYER_HEALTH), dead(false) {
 	screen_scale = 1.f;
 	// Initialize key flags
 	move_up = false;
@@ -18,6 +18,7 @@ Player::~Player() {
 	delete unit;
 }
 
+// Just an initialization functions for sprites and shit
 void Player::init() {
 	if (unit) delete unit;
 	unit = new Unit(0, 0, screen_scale);
@@ -25,7 +26,9 @@ void Player::init() {
 	unit->playAnimation(UNIT_ANIM_IDLE_RIGHT);
 }
 
+// Actual initialization of the player with properties
 void Player::init_properties(int id, int spawn_x, int spawn_y) {
+	dead = false;
 	player_id = id;
 	unit->move(spawn_x, spawn_y);
 }
@@ -121,12 +124,14 @@ void Player::handleEvent(SDL_Event & e) {
 }
 
 void Player::update(int delta, int units_per_tile, const Map & map) {
-	if (move_up)	unit->move(Direction::UP, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
-	if (move_down)  unit->move(Direction::DOWN, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
-	if (move_right) unit->move(Direction::RIGHT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
-	if (move_left)  unit->move(Direction::LEFT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
-	// Set the player to an idle state if there is no movement
-	if (!move_up && !move_down && !move_right && !move_left) unit->spriteStopMove();
+	if (!unit->isAttacking() && !unit->isDamaged() && !dead) {
+		if (move_up)	unit->move(Direction::UP, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
+		if (move_down)  unit->move(Direction::DOWN, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
+		if (move_right) unit->move(Direction::RIGHT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
+		if (move_left)  unit->move(Direction::LEFT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
+		// Set the player to an idle state if there is no movement
+		if (!move_up && !move_down && !move_right && !move_left) unit->spriteStopMove();
+	}
 }
 
 // Render UI related to the player
@@ -139,25 +144,33 @@ void Player::renderUI() {
 	}
 }
 
+void Player::setDead() {
+	dead = true;
+	unit->setDead();
+}
+
 void Player::damaged() {
 	// Play the animation
 	unit->spriteDamaged();
+	// TODO: (Ian) Update player death
+	health--;
 	// TODO: (Ian) Set invuln timers and what not
-	// TODO: (Ian) Update health here
 }
 
 void Player::attack_primary() {
-	// Play the animation
-	unit->attack_primary();
-	// Send a packet to the server
-	Socket::Packetvi packet;
-	packet.vals.push_back(PACKET_PLAYER_ATTACK);
-	packet.vals.push_back(player_id);
-	packet.vals.push_back(ATTACK_BASIC_PUNCH);
-	packet.vals.push_back(unit->isFaceRight() ? FACE_RIGHT : FACE_LEFT);
-	packet.vals.push_back(unit->getX());
-	packet.vals.push_back(unit->getY());
-	addPacket(Socket::createBasicPacket(packet));
+	if (!unit->isAttacking() && !unit->isDamaged()) {
+		// Play the animation
+		unit->attack_primary();
+		// Send a packet to the server
+		Socket::Packetvi packet;
+		packet.vals.push_back(PACKET_PLAYER_ATTACK);
+		packet.vals.push_back(player_id);
+		packet.vals.push_back(ATTACK_BASIC_PUNCH);
+		packet.vals.push_back(unit->isFaceRight() ? FACE_RIGHT : FACE_LEFT);
+		packet.vals.push_back(unit->getX());
+		packet.vals.push_back(unit->getY());
+		addPacket(Socket::createBasicPacket(packet));
+	}
 }
 
 void Player::setScreenScale(float scale) {

@@ -21,6 +21,7 @@
 #define UNIT_ANIM_PUNCH_LEFT	5
 #define UNIT_ANIM_DAMAGE_RIGHT	6
 #define UNIT_ANIM_DAMAGE_LEFT	7
+#define UNIT_ANIM_DEAD			8
 
 #define ATTACK_TIMER_DEFAULT	500
 #define DAMAGE_TIMER_DEFAULT	400
@@ -47,6 +48,7 @@ public:
 	void move(int x, int y, bool update_anim = true);
 	void move(Direction dir, int distance);
 	void move(Direction dir, int distance, const Map& map);
+	void setDead();
 
 	// Attack functions just handle attack visuals
 	// For now, all units have the same attacks
@@ -59,6 +61,8 @@ public:
 	int getScreenY() const { return screen_y; }
 	Vec2i getPos() const { return Vec2i{ x, y }; }
 	bool isFaceRight() const { return face_right; }
+	bool isDamaged();
+	bool isAttacking();
 
 	// Sprite methods
 	void spriteMoveUp();
@@ -80,6 +84,7 @@ protected:
 	int screen_y;
 	float screen_scale;
 
+	bool dead;
 	bool face_right;
 	bool attacking;
 	Clock attack_timer;

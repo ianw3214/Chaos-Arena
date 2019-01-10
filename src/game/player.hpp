@@ -47,6 +47,7 @@ public:
 	void handleEvent(SDL_Event& e);
 	void update(int delta, int units_per_tile, const Map& map);
 	void renderUI();
+	void setDead();
 
 	// Player attack methods
 	void damaged();
@@ -62,6 +63,7 @@ private:
 
 	// Player properties
 	int health;
+	bool dead;
 
 	// Input flags
 	bool move_up;

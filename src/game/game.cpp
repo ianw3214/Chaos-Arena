@@ -53,14 +53,15 @@ void Game::f_sendConnection() {
 		Socket::BasicPacket packet = Socket::createBasicPacket(con_request);
 		network->sendPacket(packet, dest);
 
-		std::this_thread::sleep_for(std::chrono::milliseconds(1500));
+		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
 	} while (!connected);
 }
 
 void Game::sendRecievedPackets() {
-	Socket::Packet2i packet;
+	Socket::Packet3i packet;
 	packet.first = PACKET_PACKETS_RECIEVED;
 	packet.second = packetsRecieved;
+	packet.third = client_id;
 	network->sendPacketGuarantee(packet, dest);
 }
 
@@ -160,10 +161,11 @@ void Game::update(int delta) {
 		if (packet_delta >= static_cast<int>(1000.f / PACKETS_PER_SEC)) {
 			packet_last_tick = SDL_GetTicks();
 			std::lock_guard<std::mutex> lock(player_mutex);
-			Socket::Packet3i packet;
-			packet.first = client_id;
-			packet.second = player.getX();
-			packet.third = player.getY();
+			Socket::Packetvi packet;
+			packet.vals.push_back(PACKET_PLAYER_POS);
+			packet.vals.push_back(client_id);
+			packet.vals.push_back(player.getX());
+			packet.vals.push_back(player.getY());
 			network->sendPacket(Socket::createBasicPacket(packet), dest);
 		}
 	}
@@ -220,7 +222,6 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 		if (Socket::getPacketType(packet) == PACKET_1I) {
 			Socket::Packet1i con_packet = Socket::convertPacket1i(packet);
 			if (con_packet.val == PACKET_DUNGEON_READY) {
-				LOG("DUNGEON READY PACKET");
 				// Set a flag here to indicate ready
 				// TODO: (Ian) Move this to a function somewhere
 				map.generateTilemap();
@@ -255,6 +256,21 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 					for (auto it = units.begin(); it != units.end(); ++it) {
 						if ((*it).first == con_packet.second) {
 							(*it).second.spriteDamaged();
+						}
+					}
+				}
+			}
+			if (con_packet.first == PACKET_UNIT_DEAD) {
+				LOG("UNIT DEAD");
+				if (con_packet.second == client_id) {
+					LOG("PLAYER DEAD");
+					player.setDead();
+				} else {
+					LOG("OTHER DEAD");
+					for (auto it = units.begin(); it != units.end(); ++it) {
+						if ((*it).first == con_packet.second) {
+							LOG("OTHER FOUND");
+							(*it).second.setDead();
 						}
 					}
 				}

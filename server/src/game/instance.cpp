@@ -46,24 +46,20 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                 network.sendPacket(packet2i, client.m_address);
             }
         }
-        if (packet2i.first == PACKET_PACKETS_RECIEVED) {
-            LOG("PACkeTS: " << packet2i.second << " - " << map.numPackets());
-            if (packet2i.second == map.numPackets()) {
-                // Send a ready packet if the player has recieved all the packets
-                Socket::Packet1i ready_packet = { PACKET_DUNGEON_READY };
-                network.sendPacketGuarantee(ready_packet, packet.address);
-            }
-        }
     }
     if (Socket::getPacketType(packet.data) == PACKET_3I) {
         // Update the corresponding player position
         Socket::Packet3i packet3i = Socket::convertPacket3i(packet.data);
-        // TODO: (Ian) Use a better lookup data structure for better performance
-        for (ClientUnit& client : clients) {
-            if (client.m_id == packet3i.first) {
-                client.m_x = packet3i.second;
-                client.m_y = packet3i.third;
-                break;
+        if (packet3i.first == PACKET_PACKETS_RECIEVED) {
+            if (packet3i.second == map.numPackets()) {
+                // Send a ready packet if the player has recieved all the packets
+                Socket::Packet1i ready_packet = { PACKET_DUNGEON_READY };
+                network.sendPacketGuarantee(ready_packet, packet.address);
+                // TODO: (Ian) Set the player to ready
+                ClientUnit * client = getClientById(packet3i.third);
+                if (client) {
+                    client->ready = true;
+                }
             }
         }
     }
@@ -71,8 +67,17 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
         Socket::Packetvi packetvi = Socket::convertPacketvi(packet.data);
         // TODO: (Ian) Better erorr handling
         if (packetvi.vals.size() == 0) return;
+        if (packetvi.vals[0] == PACKET_PLAYER_POS) {
+            int id = packetvi.vals[1];
+            int x = packetvi.vals[2];
+            int y = packetvi.vals[3];
+            ClientUnit * client = getClientById(id);
+            if (client) {
+                client->m_x = x;
+                client->m_y = y;
+            }
+        }
         if (packetvi.vals[0] == PACKET_PLAYER_ATTACK) {
-            LOG("PLAYER ATTACK");
             if (packetvi.vals[2] == ATTACK_BASIC_PUNCH) {
                 if (packetvi.vals.size() < 6) return;
                 std::vector<int> collisions;
@@ -93,14 +98,33 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                         collisions.push_back(unit.m_id);
                     }
                 }
-                // Then, send all updates to the players
-                for (const ClientUnit& unit : clients) {
-                    if (unit.m_id != packetvi.vals[1]) network.sendPacketGuarantee(packet.data, unit.m_address);
-                    for (int unit_id : collisions) {
-                        Socket::Packet2i collision;
-                        collision.first = PACKET_UNIT_DAMAGED;
-                        collision.second = unit_id;
-                        network.sendPacketGuarantee(Socket::createBasicPacket(collision), unit.m_address);
+                // Update all units hit by the attack
+                for (int unit_id : collisions) {
+                    // Remove a health from the player
+                    ClientUnit * client = getClientById(unit_id);
+                    if (!client) return;    // ERROR
+                    bool unit_dead = false;
+                    if (--(client->m_health) <= 0) {
+                        // TODO: Death timer & respawn
+                        unit_dead = true;
+                    }
+                    LOG("UNIT HEALTH: " << client->m_health << " - UNIT ID: " << client->m_id);
+                    // Send the damaged packet to all clients
+                    for (const ClientUnit& unit : clients) {
+                        // First broadcast the attack data back to the players
+                        if (unit.m_id != packetvi.vals[1]) network.sendPacketGuarantee(packet.data, unit.m_address);
+                        // Send packets based on whether the unit died or not
+                        if (unit_dead) {
+                            Socket::Packet2i death_packet;
+                            death_packet.first = PACKET_UNIT_DEAD;
+                            death_packet.second = unit_id;
+                            network.sendPacketGuarantee(Socket::createBasicPacket(death_packet), unit.m_address);
+                        } else {
+                            Socket::Packet2i collision;
+                            collision.first = PACKET_UNIT_DAMAGED;
+                            collision.second = unit_id;
+                            network.sendPacketGuarantee(Socket::createBasicPacket(collision), unit.m_address);
+                        }
                     }
                 }
             }
@@ -110,13 +134,24 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
 
 void Instance::addNewClient(Socket::Address address) {
     // Generate a new player ID and give it to the player
-    // TODO: (Ian) Make sure the ID doesn't already exist
     int clientId = rand() % 10000;
-    clients.push_back({clientId, address, 0, 0, 5});
+    while(getClientById(clientId)) {
+        clientId = rand() % 10000;
+    }
+    clients.push_back({clientId, address, false, 0, 0, 5});
     Socket::Packet1i response = { clientId };
     Socket::BasicPacket con_response = Socket::createBasicPacket(response);
     network.sendPacketGuarantee(con_response, address);
     LOG("Accepted client connection; client ID: " << clientId);
+}
+
+ClientUnit * Instance::getClientById(int id) {
+    for (ClientUnit& client : clients) {
+        if (client.m_id == id) {
+            return &client;
+        }
+    }
+    return nullptr;
 }
 
 void Instance::clientSender() {
@@ -128,6 +163,8 @@ void Instance::clientSender() {
         int current_size = 0;
         current.vals.push_back(PACKET_PLAYER_POS);
         for (const ClientUnit& client : clients) {
+            // If the client is not ready, skip it
+            if (!client.ready) continue;
             // Start working on a new packet if the current one is filled
             if (current_size > 5) {
                 packets.push_back(current);
