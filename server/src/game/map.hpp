@@ -44,8 +44,8 @@ inline bool operator==(const Edge& edge1, const Edge& edge2) {
 #define MAX_HEIGHT			10
 #define MIN_WIDTH			4
 #define MIN_HEIGHT			4
-#define NUM_GENERATED_ROOMS	40
-#define NUM_MAIN_ROOMS		10
+#define NUM_GENERATED_ROOMS	30
+#define NUM_MAIN_ROOMS		5
 
 /*
  *  A specialized map class for the server without client needed functions

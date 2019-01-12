@@ -108,10 +108,8 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                 std::vector<int> collisions;
                 int x = packetvi.vals[4] - PLAYER_WIDTH / 2;
                 if (packetvi.vals[3] == FACE_RIGHT) {
-                    LOG("FACE RIGHT PUNCH");
                     x += PUNCH_OFFSET_X;
                 } else {
-                    LOG("FACE LEFT PUNCH");
                     x -= PUNCH_OFFSET_X - PLAYER_WIDTH + PUNCH_WIDTH;
                 }
                 int y = packetvi.vals[5] - PLAYER_HEIGHT + PUNCH_OFFSET_Y;
@@ -146,6 +144,17 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                         std::chrono::milliseconds timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
                         int time_elapsed = (timestamp - client->dash_start).count();
                         if (time_elapsed > PLAYER_DASH_TIME) {
+                            client->invuln = false;
+                            client->dashing = false;
+                        } else {
+                            take_damage = false;
+                        }
+                    }
+                    if (client->invuln) {
+                        std::chrono::milliseconds timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+                        int time_elapsed = (timestamp - client->dash_start).count();
+                        if (time_elapsed > PLAYER_INVULN_TIME) {
+                            client->invuln = false;
                             client->dashing = false;
                         } else {
                             take_damage = false;
@@ -175,6 +184,11 @@ void Instance::packetRecieved(Socket::Packet<Socket::BasicPacket> packet) {
                                 collision.second = unit_id;
                                 network.sendPacketGuarantee(Socket::createBasicPacket(collision), unit.m_address);
                             }
+                        }
+                        {   // Make the unit invulnerable
+                            // TODO: (Ian) Actually implement this instead of hack
+                            client->invuln = true;
+                            client->dash_start = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
                         }
                     }
                 }

@@ -76,6 +76,7 @@ void Unit::render(int cam_x, int cam_y) const {
 	int p_y = punch_y - static_cast<int>(screen_scale * PLAYER_HEIGHT) - cam_y + static_cast<int>(screen_scale * PUNCH_OFFSET_Y);
 	punch_sprite.setPos(p_x, p_y);
 	punch_sprite.render();
+	/*
 	{	// debugging
 		int x = screen_x - static_cast<int>(screen_scale * PLAYER_WIDTH) / 2 - cam_x;
 		if (face_right) x += static_cast<int>(screen_scale * 30);
@@ -85,6 +86,7 @@ void Unit::render(int cam_x, int cam_y) const {
 		int h = static_cast<int>(screen_scale * 80);
 		Renderer::drawRectOutline({ x, y }, w, h);
 	}
+	*/
 	return;
 }
 
@@ -208,7 +210,6 @@ void Unit::attack_primary() {
 				punch_sprite.playAnimation(PUNCH_ANIM_LEFT);
 				punch_right = false;
 			}
-			LOG("PLAYING PUNCH SPRITE ANIM");
 			// Set the animation timer
 			attacking = true;
 			attack_timer.reset();

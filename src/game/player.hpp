@@ -18,14 +18,25 @@ class Map;
 #define PLAYER_FRAME_H	100
 
 #define HEALTH_SPRITE			"res/assets/UI/heart_small.png"
+#define DEFAULT_PLAYER_STAMINA	3
 #define DEFAULT_PLAYER_HEALTH	5
 #define HEART_WIDTH				50
 #define HEART_HEIGHT			50
+#define HEART_MARGIN_X			30
+#define HEART_MARGIN_Y			20
+
+#define STAMINA_HEIGHT			10
+#define STAMINA_WIDTH			80
+#define STAMINA_MARGIN_X		20
+#define STAMINA_MARGIN_Y		10
+#define OUTLINE_WIDTH			2
 
 #define RESPAWN_TIMER			4000
+#define STAMINA_TIMER			1500
 
 #define KILLS_SRC				"res/assets/UI/kills.png"
 #define DEATHS_SRC				"res/assets/UI/deaths.png"
+#define INSTRUCTIONS_SRC		"res/assets/UI/instructions.png"
 
 class Player {
 
@@ -73,6 +84,7 @@ private:
 
 	// Player properties
 	int health;
+	int stamina;
 	bool dead;
 	int kills;
 	int deaths;
@@ -80,6 +92,7 @@ private:
 	// Timers
 	bool respawn_sent;
 	Clock respawn_timer;
+	Clock stamina_timer;
 
 	// Input flags
 	bool move_up;

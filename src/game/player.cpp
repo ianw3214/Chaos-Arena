@@ -6,7 +6,7 @@
 #include "map.hpp"
 #include "number/numberSprite.hpp"
 
-Player::Player(int x, int y) : health(DEFAULT_PLAYER_HEALTH), dead(false), kills(0), deaths(0) {
+Player::Player(int x, int y) : health(DEFAULT_PLAYER_HEALTH), stamina(DEFAULT_PLAYER_STAMINA), dead(false), kills(0), deaths(0) {
 	screen_scale = 1.f;
 	// Initialize key flags
 	move_up = false;
@@ -157,22 +157,41 @@ void Player::update(int delta, int units_per_tile, const Map & map) {
 			addPacket(Socket::createBasicPacket(respawn_request));
 			respawn_sent = true;
 		}
+	} else {
+		// Regenerate stamina as long as the player isn't dead
+		if (stamina_timer.getTicks() > STAMINA_TIMER) {
+			stamina_timer.reset();
+			if (stamina < DEFAULT_PLAYER_STAMINA) stamina++;
+		}
 	}
 }
 
 // Render UI related to the player
 void Player::renderUI() {
-	// Render the player health
-	int y = Engine::getScreenHeight() - HEART_HEIGHT;
-	for (int i = 0; i < health; ++i) {
-		int x = i * HEART_WIDTH;
-		Renderer::drawTexture({ x, y }, HEART_WIDTH, HEART_HEIGHT, HEALTH_SPRITE);
+	{	// Render the player health
+		int y = Engine::getScreenHeight() - HEART_MARGIN_Y - HEART_HEIGHT;
+		for (int i = 0; i < health; ++i) {
+			int x = i * HEART_WIDTH + HEART_MARGIN_X;
+			Renderer::drawTexture({ x, y }, HEART_WIDTH, HEART_HEIGHT, HEALTH_SPRITE);
+		}
+	}
+	{	// Render the player stamina
+		int x = STAMINA_MARGIN_X;
+		int y = Engine::getScreenHeight() - STAMINA_MARGIN_Y - STAMINA_HEIGHT;
+		for (int i = 0; i < stamina; ++i) {
+			// Draw an outline for the stamina first
+			Renderer::drawRect({ x - OUTLINE_WIDTH, y - OUTLINE_WIDTH }, STAMINA_WIDTH + OUTLINE_WIDTH * 2, STAMINA_HEIGHT + OUTLINE_WIDTH * 2, { .2f, .2f, .2f });
+			Renderer::drawRect({ x, y }, STAMINA_WIDTH, STAMINA_HEIGHT, { .8f, .8f, 0.f });
+			x += STAMINA_WIDTH + STAMINA_MARGIN_X;
+		}
 	}
 	// Render player kills
 	Renderer::drawTexture(Vec2i{ 700, 10 }, 250, 60, KILLS_SRC);
 	Renderer::drawTexture(Vec2i{ 700, 70 }, 300, 60, DEATHS_SRC);
 	Number::renderNumber(kills, 1200, 10);
 	Number::renderNumber(deaths, 1200, 70);
+	// Render the instructions
+	Renderer::drawTexture(Vec2i{ 0, 0 }, 400, 100, INSTRUCTIONS_SRC);
 }
 
 void Player::setDead() {
@@ -187,6 +206,7 @@ void Player::setDead() {
 void Player::respawn(int x, int y) {
 	unit->respawn(x, y);
 	health = DEFAULT_PLAYER_HEALTH;
+	stamina = DEFAULT_PLAYER_STAMINA;
 	dead = false;
 }
 
@@ -215,6 +235,10 @@ void Player::attack_primary() {
 
 void Player::dash() {
 	if (!unit->isAttacking() && !unit->isDamaged() && !unit->isDashing()) {
+		// Only dash if there is enough stamina left
+		if (stamina <= 0) return;
+		stamina--;
+		stamina_timer.reset();
 		// Play the animation
 		if (move_right)					unit->dash(Direction::RIGHT);
 		else if (move_left)				unit->dash(Direction::LEFT);

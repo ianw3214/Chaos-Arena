@@ -18,6 +18,7 @@
 #define PLAYER_POS_SEND_FREQUENCY   80
 
 #define PLAYER_DEFAULT_HEALTH       5
+#define PLAYER_INVULN_TIME          1000
 #define PLAYER_DASH_TIME            300
 
 // Constants for calculating punch hitbox
@@ -43,6 +44,7 @@ struct ClientUnit {
     int m_health;
 
     bool dashing;
+    bool invuln;
     std::chrono::milliseconds dash_start;
 };
 
