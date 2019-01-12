@@ -4,6 +4,7 @@
 # Output binaries
 Debug/
 Release/
+alpha_release/
 
 # Library directories
 libs/
