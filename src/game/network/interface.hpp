@@ -78,6 +78,7 @@ private:
 
 	std::mutex                  m_response_lock;
 	std::set<ExpectedPacket>    m_expected_response;
+	std::set<int>				m_recieved_packets;
 
 	// The function that continuously sends packets
 	std::atomic<bool>   m_running;

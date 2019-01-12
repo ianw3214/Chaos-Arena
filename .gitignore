@@ -5,6 +5,7 @@
 Debug/
 Release/
 alpha_release/
+*.zip
 
 # Library directories
 libs/

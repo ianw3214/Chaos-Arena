@@ -18,21 +18,22 @@ typedef char PacketType;
 #define PACKET_DATA_ROOM        3
 #define PACKET_DATA_HALLWAY     4
 #define PACKET_DATA_SPAWNPOINT  5
-#define PACKET_PACKETS_RECIEVED 6
-#define PACKET_DUNGEON_READY    7
+#define PACKET_EXPECTED_PACKETS 6
+#define PACKET_PACKETS_RECIEVED 7
+#define PACKET_DUNGEON_READY    8
 
-#define PACKET_PLAYER_POS       8
-#define PACKET_PLAYER_ATTACK    9
-#define PACKET_PLAYER_DASH      10
+#define PACKET_PLAYER_POS       9
+#define PACKET_PLAYER_ATTACK    10
+#define PACKET_PLAYER_DASH      11
 
 // The defines for the attacks are in a separate file
 #include "attacks.hpp"
 
-#define PACKET_UNIT_DAMAGED     11
-#define PACKET_UNIT_DEAD        12
-#define PACKET_UNIT_RESPAWN     13
+#define PACKET_UNIT_DAMAGED     12
+#define PACKET_UNIT_DEAD        13
+#define PACKET_UNIT_RESPAWN     14
 
-#define PACKET_PLAYER_KILL      14
+#define PACKET_PLAYER_KILL      15
 
 // Helper function for writing data + updating pointer for packets
 template<class T>

@@ -67,7 +67,14 @@ private:
     // Game state variables
     Map map;
 
+    // Network variables
     Interface& network;
+
+    // Packet handling
+    void handlePacket1i(Socket::Packet1i& packet, const Socket::Address& address);
+    void handlePacket2i(Socket::Packet2i& packet, const Socket::Address& address);
+    void handlePacket3i(Socket::Packet3i& packet, const Socket::Address& address);
+    void handlePacketvi(Socket::Packetvi& packet, const Socket::Address& address);
 
     // Thread functions
     void clientSender();

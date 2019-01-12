@@ -115,10 +115,17 @@ Socket::Packet<Socket::BasicPacket> Interface::recieve() {
 	if (packet.has_data) {
 		// If the recieved packet is a guaranteed packet, send the response
 		if (Socket::isPacketGuaranteed(packet.data)) {
+			// If the packet has alraedy been recieved, ignore it
+			if (m_recieved_packets.find(Socket::getPacketId(packet.data)) != m_recieved_packets.end()) {
+				return { false };
+			}
 			Socket::Packet2i response;
 			response.first = PACKET_ID_RESPONSE;
 			response.second = Socket::getPacketId(packet.data);
-			sendPacket(response, packet.address);
+			m_recieved_packets.emplace(Socket::getPacketId(packet.data));
+			for (int i = 0; i < 3; ++i) {
+				sendPacket(response, packet.address);
+			}
 		}
 		// If the packet id is in the expected response, remove it
 		if (Socket::getPacketType(packet.data) == PACKET_2I) {

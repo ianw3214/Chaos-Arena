@@ -58,10 +58,10 @@ private:
 	// TODO: (Ian) include the mutex in the unit class
 	static std::mutex player_mutex;
 	static Player player;
-	// TODO: (Ian) Perhaps use a map or something for faster lookup
-	// NOTE: Maybe a static array of size 100 works well w/ a bloom filter
 	static std::unordered_map<int, Unit> units;
 	static std::unordered_map<int, UnitMovement> movements;
+	static void newUnit(int id, int x, int y);
+	static Unit& getUnit(int id);
 
 	// Network code
 	static Interface * network;
@@ -74,6 +74,7 @@ private:
 
 	// Helper function for sending response of number of packets recieved
 	static bool spawnPointRecieved;
+	static int expectedPackets;
 	static int packetsRecieved;
 	static void sendRecievedPackets();
 

@@ -1,4 +1,5 @@
 #include "interface.hpp"
+#include <iostream>
 
 Interface::Interface(int port) : m_port(port) {
     m_socket = Socket::create();
@@ -116,7 +117,10 @@ Socket::Packet<Socket::BasicPacket> Interface::recieve() {
             Socket::Packet2i response;
             response.first = PACKET_ID_RESPONSE;
             response.second = Socket::getPacketId(packet.data);
-            sendPacket(response, packet.address);
+            // Send it like 3 times just to be super sure
+            for (int i = 0; i < 3; ++i) {
+                sendPacket(response, packet.address);
+            }
         }
         // If the packet id is in the expected response, remove it
         if (Socket::getPacketType(packet.data) == PACKET_2I) {

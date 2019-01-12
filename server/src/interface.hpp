@@ -11,7 +11,7 @@
 #include <chrono>
 
 // DEFINES
-#define EXPECTED_PACKET_WAIT_TIME   400
+#define EXPECTED_PACKET_WAIT_TIME   500
 
 // A wrapper class to include address with each packet to send
 struct PacketWrapper {

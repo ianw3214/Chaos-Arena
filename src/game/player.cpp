@@ -13,6 +13,7 @@ Player::Player(int x, int y) : health(DEFAULT_PLAYER_HEALTH), stamina(DEFAULT_PL
 	move_down = false;
 	move_right = false;
 	move_left = false;
+	attack_pressed = false;
 }
 
 Player::~Player() {
@@ -93,7 +94,7 @@ void Player::handleEvent(SDL_Event & e) {
 			move_left = true;
 		} break;
 		case SDLK_z: {
-			attack_primary();
+			attack_pressed = true;
 		} break;
 		case SDLK_x: {
 			dash();
@@ -125,6 +126,9 @@ void Player::handleEvent(SDL_Event & e) {
 		{
 			move_left = false;
 		} break;
+		case SDLK_z: {
+			attack_pressed = false;
+		} break;
 		default: {
 			// Do nothing...
 		} break;
@@ -133,21 +137,6 @@ void Player::handleEvent(SDL_Event & e) {
 }
 
 void Player::update(int delta, int units_per_tile, const Map & map) {
-	if (!unit->isAttacking() && !unit->isDamaged() && !unit->isDashing() && !dead) {
-		if (move_up)	unit->move(Direction::UP, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
-		if (move_down)  unit->move(Direction::DOWN, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
-		if (move_right) unit->move(Direction::RIGHT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
-		if (move_left)  unit->move(Direction::LEFT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
-		// Set the player to an idle state if there is no movement
-		if (!move_up && !move_down && !move_right && !move_left) unit->spriteStopMove();
-	}
-	// Update dashing movement
-	if (unit->isDashing()) {
-		if (unit->dashDirection() == Direction::UP) unit->move(Direction::UP, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
-		if (unit->dashDirection() == Direction::DOWN) unit->move(Direction::DOWN, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
-		if (unit->dashDirection() == Direction::RIGHT) unit->move(Direction::RIGHT, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
-		if (unit->dashDirection() == Direction::LEFT) unit->move(Direction::LEFT, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
-	}
 	// Check whether to send a respawn request depending on death time
 	if (dead) {
 		if (!respawn_sent && respawn_timer.getTicks() > RESPAWN_TIMER) {
@@ -163,6 +152,26 @@ void Player::update(int delta, int units_per_tile, const Map & map) {
 			stamina_timer.reset();
 			if (stamina < DEFAULT_PLAYER_STAMINA) stamina++;
 		}
+		// Let the player attack if pressed
+		if (attack_pressed) {
+			attack_primary();
+		}
+	}
+	// Also update the player movement
+	if (!unit->isAttacking() && !unit->isDamaged() && !unit->isDashing() && !dead) {
+		if (move_up)	unit->move(Direction::UP, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
+		if (move_down)  unit->move(Direction::DOWN, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
+		if (move_right) unit->move(Direction::RIGHT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
+		if (move_left)  unit->move(Direction::LEFT, static_cast<int>(PLAYER_SPEED * units_per_tile / delta), map);
+		// Set the player to an idle state if there is no movement
+		if (!move_up && !move_down && !move_right && !move_left) unit->spriteStopMove();
+	}
+	// Update dashing movement
+	if (unit->isDashing()) {
+		if (unit->dashDirection() == Direction::UP) unit->move(Direction::UP, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
+		if (unit->dashDirection() == Direction::DOWN) unit->move(Direction::DOWN, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
+		if (unit->dashDirection() == Direction::RIGHT) unit->move(Direction::RIGHT, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
+		if (unit->dashDirection() == Direction::LEFT) unit->move(Direction::LEFT, static_cast<int>(DASH_SPEED * units_per_tile / delta), map);
 	}
 }
 
@@ -219,6 +228,9 @@ void Player::damaged() {
 
 void Player::attack_primary() {
 	if (!unit->isAttacking() && !unit->isDamaged() && !unit->isDashing()) {
+		// Check the cooldowns
+		if (attack_cooldown.getTicks() < ATTACK_COOLDOWN) return;
+		attack_cooldown.reset();
 		// Play the animations
 		unit->attack_primary();
 		// Send a packet to the server

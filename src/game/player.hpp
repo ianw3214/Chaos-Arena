@@ -31,6 +31,7 @@ class Map;
 #define STAMINA_MARGIN_Y		10
 #define OUTLINE_WIDTH			2
 
+#define ATTACK_COOLDOWN			320
 #define RESPAWN_TIMER			4000
 #define STAMINA_TIMER			1500
 
@@ -91,6 +92,7 @@ private:
 
 	// Timers
 	bool respawn_sent;
+	Clock attack_cooldown;
 	Clock respawn_timer;
 	Clock stamina_timer;
 
@@ -99,6 +101,7 @@ private:
 	bool move_down;
 	bool move_left;
 	bool move_right;
+	bool attack_pressed;
 
 	// Queue of packets to send to the server
 	std::queue<Socket::BasicPacket> packet_queue;

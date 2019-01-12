@@ -9,6 +9,7 @@
 
 #include "game/map.hpp"
 #include "game/network/interface.hpp"
+#include "number/numberSprite.hpp"
 
 // Constants
 const Socket::Address dest(68, 183, 119, 157, Socket::DEFAULT_PORT);
@@ -34,6 +35,7 @@ int					Game::packet_delta;
 int					Game::packet_last_tick;
 
 bool				Game::spawnPointRecieved;
+int					Game::expectedPackets;
 int					Game::packetsRecieved;
 
 // TEMPORARY CODE
@@ -57,6 +59,17 @@ void Game::f_sendConnection() {
 	} while (!connected);
 }
 
+void Game::newUnit(int id, int x, int y) {
+	units.insert({ id, Unit(x, y, screen_scale) });
+}
+
+Unit & Game::getUnit(int id) {
+	if (units.find(id) == units.end()) {
+		newUnit(id, 0, 0);
+	}
+	return units[id];
+}
+
 void Game::sendRecievedPackets() {
 	Socket::Packet3i packet;
 	packet.first = PACKET_PACKETS_RECIEVED;
@@ -74,6 +87,7 @@ void Game::init(Interface * net) {
 	player.init();
 	// Helper variables for recieving dungeon data
 	spawnPointRecieved = false;
+	expectedPackets = -1;
 	packetsRecieved = 0;
 	
 	// Clear the map at the beginning just to be safe
@@ -86,6 +100,9 @@ void Game::init(Interface * net) {
 	// TODO: (Ian) Join this thread somewhere maybe
 	t_sendConnection = std::thread(Game::f_sendConnection);
 	t_sendConnection.detach();
+
+	// Initialize some textures
+	TextureManager::addTexture("res/assets/loading.png");
 }
 
 void Game::shutdown() {
@@ -144,9 +161,10 @@ void Game::update(int delta) {
 			}
 			// Otherwise, create the unit
 			else {
-				units[(*it).first] = Unit((*it).second.start_x, (*it).second.start_y, screen_scale);
+				// Use this to prevent default construction
+				newUnit((*it).first, (*it).second.start_x, (*it).second.start_y);
 				// Initialize any other unit properties
-				units[(*it).first].setSprite();
+				getUnit((*it).first).setSprite();
 			}
 		}
 
@@ -169,6 +187,11 @@ void Game::update(int delta) {
 			packet.vals.push_back(player.getX());
 			packet.vals.push_back(player.getY());
 			network->sendPacket(Socket::createBasicPacket(packet), dest);
+		}
+	} else {
+		// Quick hack for in case things don't send properly
+		if (expectedPackets == packetsRecieved) {
+			sendRecievedPackets();
 		}
 	}
 
@@ -195,7 +218,14 @@ void Game::render() {
 		// map.render_debug();
 	} else {
 		// TODO: (Ian) Implement full loading screen
-		Renderer::drawTexture({ Engine::getScreenWidth() / 2 - 64, Engine::getScreenHeight() / 2 - 64 }, 128, 128, *TextureManager::getTexture("res/assets/loading.png"));
+		Renderer::drawTexture({ 0, 0 }, Engine::getScreenWidth(), Engine::getScreenHeight(), *TextureManager::getTexture("res/assets/loading.png"));
+		// Draw the loading packet numbers
+		if (expectedPackets > 0) {
+			// Render the actual number on the left
+			Number::renderNumber(packetsRecieved, Engine::getScreenWidth() / 2, Engine::getScreenHeight() - 100);
+			// Render the expected number on the right
+			Number::renderNumber(expectedPackets, Engine::getScreenWidth() - 300, Engine::getScreenHeight() - 100);
+		}
 	}
 }
 
@@ -276,17 +306,18 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 					}
 				}
 			}
+			if (con_packet.first == PACKET_EXPECTED_PACKETS) {
+				expectedPackets = con_packet.second;
+			}
 		}
 		if (Socket::getPacketType(packet) == PACKET_3I) {
 			Socket::Packet3i con_packet = Socket::convertPacket3i(packet);
 			if (con_packet.first == PACKET_DATA_SPAWNPOINT) {
 				// Set the spawn point if not yet set and send response to server
-				if (!spawnPointRecieved) {
-					map.setSpawnPoint(con_packet.second, con_packet.third);
-					packetsRecieved++;
-					sendRecievedPackets();
-					spawnPointRecieved = true;
-				}
+				map.setSpawnPoint(con_packet.second, con_packet.third);
+				packetsRecieved++;
+				sendRecievedPackets();
+				spawnPointRecieved = true;
 			}
 			if (con_packet.first == PACKET_PLAYER_DASH) {
 				Direction dir = Direction::RIGHT;
@@ -312,15 +343,16 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 					int y = con_packet.vals[i + 2];
 					int timestamp = SDL_GetTicks();
 					if (movements.find(id) != movements.end()) {
+						
 						// If the unit is already in the right position, ignore the packet
 						if (x == movements[id].goal_x && y == movements[id].goal_y) {
-							movements[id].start_x = units[id].getX();
-							movements[id].start_y = units[id].getY();
-							movements[id].goal_x = units[id].getX();
-							movements[id].goal_y = units[id].getY();
+							movements[id].start_x = movements[id].goal_x;
+							movements[id].start_y = movements[id].goal_y;
+							// No change in goal here
 						} else {
-							movements[id].start_x = units[id].getX();
-							movements[id].start_y = units[id].getY();
+							// Assume the unit is already created here
+							movements[id].start_x = getUnit(id).getX();
+							movements[id].start_y = getUnit(id).getY();
 							movements[id].goal_x = x;
 							movements[id].goal_y = y;
 						}
@@ -338,11 +370,9 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 				int y = con_packet.vals[2];
 				int w = con_packet.vals[3];
 				int h = con_packet.vals[4];
-				if (!map.containsRoom(x, y, w, h)) {
-					map.addMainRoom({ 0, {x, y}, w, h });
-					packetsRecieved++;
-					sendRecievedPackets();
-				}
+				map.addMainRoom({ 0, {x, y}, w, h });
+				packetsRecieved++;
+				sendRecievedPackets();
 			}
 			if (con_packet.vals[0] == PACKET_DATA_HALLWAY) {
 				// Add a hallway edge to the map
@@ -351,18 +381,15 @@ void Game::packetRecieved(Socket::BasicPacket packet) {
 				int y1 = con_packet.vals[2];
 				int x2 = con_packet.vals[3];
 				int y2 = con_packet.vals[4];
-				if (!map.containsHallway(x1, y1, x2, y2)) {
-					map.addHallwayEdge({ 0, 0, { x1, y1 }, { x2, y2 } });
-					packetsRecieved++;
-					sendRecievedPackets();
-				}
+				map.addHallwayEdge({ 0, 0, { x1, y1 }, { x2, y2 } });
+				packetsRecieved++;
+				sendRecievedPackets();
 			}
 			if (con_packet.vals[0] == PACKET_PLAYER_ATTACK) {
-				LOG("PACKET RECIEVED FOR PLAYER ATTACK");
 				int id = con_packet.vals[1];
 				bool face_right = con_packet.vals[3] == FACE_RIGHT ? true : false;
 				// TODO: (Ian) Set face_right of unit as well
-				units[id].attack_primary();
+				getUnit(id).attack_primary();
 			}
 			if (con_packet.vals[0] == PACKET_UNIT_RESPAWN) {
 				if (con_packet.vals.size() < 4) return;	// ERROR
