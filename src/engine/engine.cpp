@@ -3,6 +3,7 @@
 // External library includes
 #include <GL/glew.h>
 #include <SDL2/SDL_opengl.h>
+#include <stb_image.h>
 
 // Project includes
 #include "utils/utils.hpp"
@@ -35,7 +36,7 @@ void Engine::init() {
 
 	// Create SDL window
 	// m_window = SDL_CreateWindow("TEST", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 500, 500, SDL_WINDOW_OPENGL | SDL_WINDOW_BORDERLESS);
-	m_window = SDL_CreateWindow("TEST", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 500, 500, SDL_WINDOW_OPENGL);
+	m_window = SDL_CreateWindow("Chaos Arena", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 500, 500, SDL_WINDOW_OPENGL);
 	if (m_window == NULL) {
 		ERR("Could not create a window")
 	}
@@ -74,6 +75,30 @@ void Engine::init() {
 
 	// Initialize random seed
 	srand(static_cast<unsigned int>(time(nullptr)));
+
+	// HARD CODED SHIT
+	std::string path = "res/assets/icon.png";
+	int width, height;
+	// IMAGE LOADING TO EXE ICON
+	int req_format = STBI_rgb_alpha;
+	int original_format;
+	unsigned char* data = stbi_load(path.c_str(), &width, &height, &original_format, req_format);
+	if (data == NULL) {
+		ERR("Couldn't load image: " << path);
+		LOG(stbi_failure_reason());
+	}
+
+	SDL_Surface * loadSurface = SDL_CreateRGBSurfaceWithFormatFrom((void*)data, width, height, 32, 4 * width, SDL_PIXELFORMAT_RGBA32);
+	if (!loadSurface) {
+		ERR("Unable to load image: " << path);
+		LOG(SDL_GetError());
+	}
+
+	SDL_SetWindowIcon(m_window, loadSurface);
+
+	// free the temporary data
+	SDL_FreeSurface(loadSurface);
+	stbi_image_free(data);
 
 }
 
