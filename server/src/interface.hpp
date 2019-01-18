@@ -70,6 +70,9 @@ public:
 
     Socket::Packet<Socket::BasicPacket> recieve();
 
+    void pause();
+    void unpause();
+
 private:
 
     std::mutex      m_send_lock;
@@ -86,6 +89,7 @@ private:
 
     // The function that continuously sends packets
     std::atomic<bool>   m_running;
+    std::atomic<bool>   m_paused;
     std::thread         t_packet_sender;
     void f_packet_sender();
 

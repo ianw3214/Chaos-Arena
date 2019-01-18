@@ -9,6 +9,7 @@ Interface::Interface(int port) : m_port(port) {
     m_packet_id = 1;
 
     m_running = true;
+    m_paused = false;
     t_packet_sender = std::thread(&Interface::f_packet_sender, this);
 }
 
@@ -142,6 +143,14 @@ Socket::Packet<Socket::BasicPacket> Interface::recieve() {
     return { false };
 }
 
+void Interface::pause() {
+    m_paused = true;
+}
+
+void Interface::unpause() {
+    m_paused = false;
+}
+
 // The function that continuously sends packets
 void Interface::f_packet_sender() {
     while (m_running) {
@@ -162,5 +171,6 @@ void Interface::f_packet_sender() {
             }
         }
         m_response_lock.unlock();
+        if (m_paused) std::chrono::milliseconds(std::chrono::milliseconds(5000));
     }
 }
